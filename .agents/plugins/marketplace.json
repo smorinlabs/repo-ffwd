@@ -1,7 +1,7 @@
 {
-  "name": "py-launch-blueprint",
+  "name": "repo-updater",
   "interface": {
-    "displayName": "py-launch-blueprint"
+    "displayName": "repo-updater"
   },
   "plugins": [
     {

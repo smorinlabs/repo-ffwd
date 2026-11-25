@@ -17,21 +17,21 @@ exclude = [
 ]
 
 [[modules]]
-path = "py_launch_blueprint"
+path = "repo_updater"
 depends_on = []
 
 [[modules]]
-path = "py_launch_blueprint.core"
-depends_on = ["py_launch_blueprint"]
+path = "repo_updater.core"
+depends_on = ["repo_updater"]
 
 [[modules]]
-path = "py_launch_blueprint.composition"
-depends_on = ["py_launch_blueprint.core"]
+path = "repo_updater.composition"
+depends_on = ["repo_updater.core"]
 
 [[modules]]
-path = "py_launch_blueprint.cli"
-depends_on = ["py_launch_blueprint.composition", "py_launch_blueprint.core", "py_launch_blueprint"]
+path = "repo_updater.cli"
+depends_on = ["repo_updater.composition", "repo_updater.core", "repo_updater"]
 
 [[modules]]
-path = "py_launch_blueprint.web"
-depends_on = ["py_launch_blueprint.core", "py_launch_blueprint.composition", "py_launch_blueprint"]
+path = "repo_updater.web"
+depends_on = ["repo_updater.core", "repo_updater.composition", "repo_updater"]

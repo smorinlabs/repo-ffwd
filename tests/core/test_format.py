@@ -2,8 +2,8 @@
 
 from datetime import UTC, datetime, timedelta
 
-from py_launch_blueprint.core.format import relative_time, rich_link
-from py_launch_blueprint.core.models import ConfigPath
+from repo_updater.core.format import relative_time, rich_link
+from repo_updater.core.models import ConfigPath
 
 NOW = datetime(2026, 6, 12, 12, 0, 0, tzinfo=UTC)
 
