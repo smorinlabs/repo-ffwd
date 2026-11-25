@@ -25,7 +25,7 @@ contributor="${repo_root}/.blueprint-contributor"
 
 # Canonical blueprint owner/repo pairs. Pre-org-move (`smorin/`) included so
 # people who cloned before the move still get a silent guard.
-blueprint_owner_repos="smorinlabs/py-launch-blueprint smorin/py-launch-blueprint"
+blueprint_owner_repos="smorinlabs/repo-updater smorin/repo-updater"
 
 parse_origin() {
     # Echoes "owner/repo" with trailing .git stripped; empty if no origin or unparsable.
@@ -75,7 +75,7 @@ case "$mode" in
 
   You are running a recipe that produces a wrong artifact, an external
   side effect, or an identity-bearing write — but this project still
-  carries the py-launch-blueprint identity (package name, repo name,
+  carries the repo-updater identity (package name, repo name,
   CLI command, copyright holder, URLs).
 
   Run one of:

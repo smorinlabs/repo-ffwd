@@ -13,4 +13,4 @@ configuration and does not grant edit permission to PR reviews.
 
 Workflow and helper templates originate in smorinlabs/smorinlabs-skills (MIT).
 The audit failure extraction and URL verification behavior derives from the
-audit-triage integration in smorinlabs/py-launch-blueprint (MIT).
+audit-triage integration in smorinlabs/repo-updater (MIT).

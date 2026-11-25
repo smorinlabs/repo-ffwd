@@ -1,6 +1,6 @@
-# About Py Launch Blueprint
+# About Repo Updater
 
-Welcome to Py Launch Blueprint! This section covers the project's purpose, philosophy, and key features, giving you a clear understanding of what it offers.
+Welcome to Repo Updater! This section covers the project's purpose, philosophy, and key features, giving you a clear understanding of what it offers.
 
 
 ```{toctree}
