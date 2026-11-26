@@ -42,7 +42,7 @@ from repo_updater.core.paths import APP_NAME
 # user-facing literals, so they track a rename automatically. The env-var
 # prefix and the click completion var are both APP_NAME-shaped.
 _COMPLETE_VAR = f"_{APP_NAME.upper()}_COMPLETE"
-_PROG_NAME = "repo_updater"
+_PROG_NAME = "repo-updater"
 
 
 def _print_version(ctx: click.Context, _param: click.Parameter, value: bool) -> None:
@@ -58,6 +58,8 @@ def _print_version(ctx: click.Context, _param: click.Parameter, value: bool) -> 
 @click.group(
     name=_PROG_NAME,
     cls=SuggestingGroup,
+    aliases={"repos": "repo"},
+    invoke_without_command=True,
     context_settings={
         "help_option_names": ["-h", "--help"],
         # Every option also resolves from a <APP_NAME>_* env var (R1.2). The
@@ -75,13 +77,18 @@ def _print_version(ctx: click.Context, _param: click.Parameter, value: bool) -> 
     callback=_print_version,
     help="Show version, Python, and platform, then exit.",
 )
-def cli() -> None:
-    """repo_updater — a gh-style CLI for Py.
+@click.pass_context
+def cli(ctx: click.Context) -> None:
+    """repo-updater — safe, parallel, config-driven Git repository updater.
 
-    Commands follow a noun-verb shape, e.g. `repo_updater projects list`. Every command
-    supports -o/--output {text,json,markdown}, --json, -v/--verbose, --no-color,
-    and --config. Results go to stdout; logs and errors go to stderr.
+    Commands follow a noun-verb shape, e.g. `repo-updater repo sync`. Every
+    command supports -o/--output {text,json,markdown}, --json, -v/--verbose,
+    --no-color, and --config. Results go to stdout; logs and errors go to
+    stderr.
     """
+    if ctx.invoked_subcommand is None:
+        click.echo(ctx.get_help())
+        ctx.exit(0)
 
 
 @cli.command(name="completion")

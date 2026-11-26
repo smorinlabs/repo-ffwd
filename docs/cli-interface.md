@@ -147,8 +147,8 @@ Available on every command (R4.1–R4.4). Exact flag matching is enforced — pr
 | Exit code | Meaning |
 |---|---|
 | `0` | Success (all repositories updated, up-to-date, or cleanly skipped) |
-| `1` | Partial or total operational failure (fetch error, timeout, dirty-blocked FF, stash conflict) — continue-on-error by default (R6.3, Decision #37) |
-| `2` | CLI usage error or missing/invalid configuration (R6.1, Decision #16) |
+| `1` | Partial or total operational failure (fetch error, timeout, dirty-blocked FF, stash conflict) or missing/invalid configuration (`ExitCode.CONFIG`) — continue-on-error by default (R6.3, Decision #37) |
+| `2` | CLI usage/parse error (R6.1, Decision #16) |
 | `4` | Unexpected internal error (traceback appended to XDG state crash log) |
 | `130` | Interrupted by `SIGINT` (cancels pending workers cleanly) |
 | `143` | Terminated by `SIGTERM` (cancels pending workers cleanly, Decision #38) |
@@ -158,5 +158,5 @@ Available on every command (R4.1–R4.4). Exact flag matching is enforced — pr
 ## 7. Safety & Non-Interactive Guarantees (§8, §10)
 
 - **Non-interactive git subprocesses:** Every git command runs with `stdin=DEVNULL`, `GIT_TERMINAL_PROMPT=0`, `GCM_INTERACTIVE=never`, `LC_ALL=C`, and the configured per-repo `--timeout`. Default `GIT_SSH_COMMAND="ssh -o BatchMode=yes -o ConnectTimeout=15"` is injected **only** when neither `GIT_SSH_COMMAND`/`GIT_SSH` (environment) nor `core.sshCommand` (git config) is already set, preserving custom SSH identities and proxies while still guaranteeing non-interactive termination via closed stdin and timeout.
-- **First-run setup gating (Decision #51):** Missing-config setup prompts fire **only** when stdin and stderr are interactive TTYs, `--no-input` is not set, and the **resolved output mode** is not `json` (regardless of whether JSON was selected via `--json`, `-o json`, `$REPO_UPDATER_OUTPUT`, or config); otherwise exit `2` with an actionable hint.
+- **First-run setup gating (Decision #51):** Missing-config setup prompts fire **only** when stdin and stderr are interactive TTYs, `--no-input` is not set, and the **resolved output mode** is not `json` (regardless of whether JSON was selected via `--json`, `-o json`, `$REPO_UPDATER_OUTPUT`, or config); otherwise exit `1` (`ExitCode.CONFIG`) with an actionable hint.
 - **No unnecessary working-tree mutation & worktree safety:** Already-current (`behind == 0`), ahead (`ahead > 0`), and diverged repositories are never stashed or modified. Linked worktrees are skipped by default; off-branch repositories update only the local `<default>` ref via fast-forward-only `git fetch <remote> <default>:<default>` without switching branches. If `<default>` is checked out in any linked worktree, the ref update is skipped and reported (`skipped`) rather than mutating a shared ref out from under that worktree's index; under `--include-worktrees`, only the worktree that actually has `<default>` checked out performs `git merge --ff-only` while sibling checkouts skip the ref update.

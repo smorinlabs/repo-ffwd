@@ -13,7 +13,6 @@ from repo_updater.cli.context import AppContext, maybe_show_first_run_hint
 from repo_updater.cli.main import cli
 from repo_updater.cli.output import OutputMode, Renderer
 from repo_updater.core.config import Config
-from repo_updater.core.models import Project
 
 
 @pytest.fixture
@@ -35,7 +34,7 @@ def test_version(runner):
 def test_help_lists_nouns(runner):
     result = runner.invoke(cli, ["--help"])
     assert result.exit_code == 0
-    assert "projects" in result.output
+    assert "repo" in result.output
     assert "config" in result.output
 
 
@@ -45,79 +44,67 @@ def test_completion_bash(runner):
     assert "_REPO_UPDATER_COMPLETE" in result.output
 
 
-# -- projects noun --------------------------------------------------------
+# -- repo noun (mocked service) -------------------------------------------
 
 
 @pytest.fixture
 def mock_service():
-    # The command builds its service via the composition root; patch that seam
-    # so the CLI exercises real rendering/exit-code paths over a fake service.
-    with patch(
-        "repo_updater.cli.commands.projects.build_projects_service"
-    ) as mock_build:
+    from repo_updater.core.models import DiscoveredRepo, RepoListResult
+
+    with patch("repo_updater.cli.commands.repo.build_repo_sync_service") as mock_build:
         svc = Mock()
-        svc.list_projects.return_value = [
-            Project(id="1", name="Test Project", workspace="Test WS")
-        ]
-        svc.get_project.return_value = Project(
-            id="1", name="Test Project", workspace="Test WS"
+        svc.list_repos.return_value = RepoListResult(
+            repos=[
+                DiscoveredRepo(
+                    path="/srv/ws/demo",
+                    name="demo",
+                    root="/srv/ws",
+                    relative_path="demo",
+                    remote_protocol="https",
+                )
+            ],
+            roots_scanned=["/srv/ws"],
         )
         mock_build.return_value = svc
         yield svc
 
 
-def test_projects_list_human(runner, mock_service):
-    result = runner.invoke(cli, ["projects", "list", "--token", "t"])
+def test_repo_list_human(runner, mock_service):
+    result = runner.invoke(cli, ["repo", "list", "--root", "/srv/ws"])
     assert result.exit_code == 0
-    assert "Test Project" in result.output
+    assert "demo" in result.output
 
 
-def test_projects_list_json(runner, mock_service):
-    result = runner.invoke(cli, ["projects", "list", "--token", "t", "--json"])
-    assert result.exit_code == 0
-    payload = json.loads(result.output)
-    assert payload["projects"][0]["name"] == "Test Project"
-    assert payload["projects"][0]["id"] == "1"
-
-
-def test_projects_list_markdown(runner, mock_service):
-    result = runner.invoke(cli, ["projects", "list", "--token", "t", "-o", "markdown"])
-    assert result.exit_code == 0
-    assert "| Name | Workspace | ID |" in result.output
-    assert "| --- | --- | --- |" in result.output
-
-
-def test_projects_list_passes_filters(runner, mock_service):
-    runner.invoke(
-        cli,
-        ["projects", "list", "--token", "t", "--workspace", "WS", "--limit", "5"],
-    )
-    mock_service.list_projects.assert_called_with(workspace="WS", limit=5)
-
-
-def test_projects_get(runner, mock_service):
-    result = runner.invoke(cli, ["projects", "get", "1", "--token", "t", "--json"])
+def test_repo_list_json(runner, mock_service):
+    result = runner.invoke(cli, ["repo", "list", "--root", "/srv/ws", "--json"])
     assert result.exit_code == 0
     payload = json.loads(result.output)
-    assert payload["projects"][0]["id"] == "1"
+    assert payload["repos"][0]["name"] == "demo"
 
 
-def test_projects_no_token_auth_error(runner, monkeypatch):
+def test_repo_list_markdown(runner, mock_service):
+    result = runner.invoke(cli, ["repo", "list", "--root", "/srv/ws", "-o", "markdown"])
+    assert result.exit_code == 0
+    assert "| Repository | Root | Kind | Protocol | Tags |" in result.output
+    assert "| --- | --- | --- | --- | --- |" in result.output
+
+
+def test_repo_list_missing_config_error(runner, monkeypatch):
     monkeypatch.delenv("REPO_UPDATER_TOKEN", raising=False)
-    result = runner.invoke(cli, ["projects", "list", "--config", "/nope/.env"])
-    assert result.exit_code == 2  # ExitCode.AUTH
-    assert "No Py token" in result.output
+    result = runner.invoke(cli, ["repo", "list", "--config", "/nope/cfg.toml"])
+    assert result.exit_code == 1  # ExitCode.CONFIG
+    assert "config init" in result.output
 
 
-def test_projects_no_token_auth_error_json(runner, monkeypatch):
+def test_repo_list_missing_config_error_json(runner, monkeypatch):
     monkeypatch.delenv("REPO_UPDATER_TOKEN", raising=False)
     result = runner.invoke(
-        cli, ["projects", "list", "--config", "/nope/.env", "--json"]
+        cli, ["repo", "list", "--config", "/nope/cfg.toml", "--json"]
     )
-    assert result.exit_code == 2
+    assert result.exit_code == 1
     payload = json.loads(result.output)
-    assert payload["error"]["code"] == 2
-    assert payload["error"]["name"] == "AUTH"
+    assert payload["error"]["code"] == 1
+    assert payload["error"]["name"] == "CONFIG"
 
 
 # -- config noun ----------------------------------------------------------
@@ -164,7 +151,7 @@ def test_doctor_json(runner, monkeypatch):
     assert result.exit_code == 0
     payload = json.loads(result.output)
     names = {c["name"] for c in payload["checks"]}
-    assert {"python", "platform", "config-file", "token"} <= names
+    assert {"python", "platform", "git", "config-file", "roots"} <= names
 
 
 def test_config_get_setting(runner, tmp_path, monkeypatch):
@@ -514,13 +501,13 @@ def test_config_get_reports_default_source(runner, tmp_path, monkeypatch):
 
 
 def test_unknown_root_command_suggests_near_miss(runner):
-    result = runner.invoke(cli, ["porjects"])
+    result = runner.invoke(cli, ["rpo"])
     assert result.exit_code != 0
-    assert "Did you mean 'projects'?" in result.output
+    assert "Did you mean 'repo'?" in result.output
 
 
 def test_unknown_verb_suggests_near_miss(runner):
-    result = runner.invoke(cli, ["projects", "lst", "--token", "t"])
+    result = runner.invoke(cli, ["repo", "lst", "--root", "/srv/ws"])
     assert result.exit_code != 0
     assert "Did you mean 'list'?" in result.output
 
@@ -534,29 +521,29 @@ def test_unknown_command_without_match_keeps_plain_error(runner):
 # -- error codes, hints, crash log (REC-02 / REC-22) -----------------------
 
 
-def test_auth_error_carries_error_code_and_hint(runner, monkeypatch):
+def test_config_error_carries_error_code_and_hint(runner, monkeypatch):
     monkeypatch.delenv("REPO_UPDATER_TOKEN", raising=False)
     result = runner.invoke(
-        cli, ["projects", "list", "--config", "/nope/.env", "--json"]
+        cli, ["repo", "list", "--config", "/nope/cfg.toml", "--json"]
     )
-    assert result.exit_code == 2
+    assert result.exit_code == 1
     payload = json.loads(result.output)
-    assert payload["error"]["error_code"] == "REPO_UPDATER002"
-    assert "REPO_UPDATER_TOKEN" in payload["error"]["hint"]
+    assert payload["error"]["error_code"] == "REPO_UPDATER001"
+    assert "config init" in payload["error"]["hint"]
 
 
-def test_auth_error_text_shows_hint(runner, monkeypatch):
+def test_config_error_text_shows_hint(runner, monkeypatch):
     monkeypatch.delenv("REPO_UPDATER_TOKEN", raising=False)
-    result = runner.invoke(cli, ["projects", "list", "--config", "/nope/.env"])
-    assert result.exit_code == 2
-    assert "REPO_UPDATER002" in result.output
+    result = runner.invoke(cli, ["repo", "list", "--config", "/nope/cfg.toml"])
+    assert result.exit_code == 1
+    assert "REPO_UPDATER001" in result.output
     assert "hint:" in result.output
 
 
 def test_unexpected_error_writes_crash_log(runner, mock_service, tmp_path, monkeypatch):
     monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path))
-    mock_service.list_projects.side_effect = RuntimeError("kaboom")
-    result = runner.invoke(cli, ["projects", "list", "--token", "t"])
+    mock_service.list_repos.side_effect = RuntimeError("kaboom")
+    result = runner.invoke(cli, ["repo", "list", "--root", "/srv/ws"])
     assert result.exit_code == 4
     assert "kaboom" in result.output
     assert "full traceback:" in result.output
@@ -569,8 +556,8 @@ def test_unexpected_error_json_includes_traceback_path(
     runner, mock_service, tmp_path, monkeypatch
 ):
     monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path))
-    mock_service.list_projects.side_effect = RuntimeError("kaboom")
-    result = runner.invoke(cli, ["projects", "list", "--token", "t", "--json"])
+    mock_service.list_repos.side_effect = RuntimeError("kaboom")
+    result = runner.invoke(cli, ["repo", "list", "--root", "/srv/ws", "--json"])
     assert result.exit_code == 4
     payload = json.loads(result.output)
     assert payload["error"]["error_code"] == "REPO_UPDATER000"
@@ -597,10 +584,15 @@ def test_config_init_prompts_and_writes_answers(runner, tmp_path, monkeypatch):
     result = runner.invoke(
         cli,
         ["config", "init", "--config", str(target)],
-        input="json\nalways\ninfo\n",
+        input="~/work\n3\n8\n45\ntrue\njson\nalways\ninfo\n",
     )
-    assert result.exit_code == 0
+    assert result.exit_code == 0, result.output
     data = tomllib.loads(target.read_text())
+    assert data["roots"] == [{"path": "~/work"}]
+    assert data["defaults"]["depth"] == 3
+    assert data["sync"]["concurrency"] == 8
+    assert data["sync"]["timeout_seconds"] == 45
+    assert data["sync"]["autostash"] is True
     assert data["output"]["format"] == "json"
     assert data["output"]["color"] == "always"
     assert data["logging"]["level"] == "info"
