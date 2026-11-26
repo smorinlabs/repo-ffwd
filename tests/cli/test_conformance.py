@@ -70,3 +70,11 @@ def test_r7_8_json_error_schema_equivalence(runner, tmp_path):
         assert "code" in payload["error"]
         assert "message" in payload["error"]
         assert "error_code" in payload["error"]
+
+
+def test_r6_1_invalid_status_filter_exits_two(runner, tmp_path):
+    res = runner.invoke(
+        cli,
+        ["repo", "status", "--root", str(tmp_path), "--filter", "not-a-filter"],
+    )
+    assert res.exit_code == 2

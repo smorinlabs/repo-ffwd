@@ -63,6 +63,9 @@ file with roots found"):
 - **List discovered repos (offline):** `repo-ffwd repo list --json --no-input`
 - **Read-only status (offline):** `repo-ffwd repo status --json --no-input`
 - **Read-only status with fetch:** `repo-ffwd repo status --fetch --json --no-input`
+- **Filter status (repeatable OR):** `repo-ffwd repo status --filter dirty --filter ahead --json --no-input`
+  *(Choices: `all`, `dirty`, `clean`, `ahead`, `behind`, `diverged`, `local`, `issues`.)*
+- **Human-readable detailed view or legend:** `repo-ffwd repo status --detailed --legend`
 - **Inspect effective config:** `repo-ffwd config view --show-origin --json`
 - **Diagnose environment & roots:** `repo-ffwd doctor --json`
 

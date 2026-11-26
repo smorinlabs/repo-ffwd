@@ -287,7 +287,9 @@
   
     Show read-only branch, dirty, and ahead/behind status across repositories.
   
-    Examples:     repo-ffwd repo status     repo-ffwd repo status --fetch --json
+    Examples:     repo-ffwd repo status     repo-ffwd repo status --filter dirty
+    --filter ahead     repo-ffwd repo status --detailed --legend     repo-ffwd
+    repo status --fetch --json
   
   Options:
     --root TEXT                     Directory root to scan (repeatable; overrides
@@ -298,6 +300,13 @@
                                     least one matching tag.
     --fetch / --no-fetch            Fetch remotes before computing ahead/behind
                                     counts (offline by default).
+    --filter [all|dirty|clean|ahead|behind|diverged|local|issues]
+                                    Filter repositories by status (repeatable; OR
+                                    matching).  [default: all]
+    --detailed                      Show an expanded per-repository breakdown in
+                                    text and Markdown output.
+    --legend                        Display a column and symbol legend before text
+                                    output.
     --concurrency INTEGER RANGE     Maximum number of parallel workers.
                                     [1<=x<=64]
     --timeout INTEGER RANGE         Per-repository git fetch timeout in seconds

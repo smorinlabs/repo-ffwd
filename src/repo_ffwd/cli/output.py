@@ -222,6 +222,10 @@ class Renderer:
                     assert_never(self.mode)
 
     def _render_text(self, result: CLIResult, console: Console) -> None:
+        custom = result.render_text()
+        if custom is not None:
+            console.print(custom)
+            return
         columns = result.table_columns()
         if not columns or not result.table_rows():
             note = result.human_note()
@@ -240,6 +244,9 @@ class Renderer:
 
     @staticmethod
     def _to_markdown(result: CLIResult) -> str:
+        custom = result.render_markdown()
+        if custom is not None:
+            return custom
         columns = result.table_columns()
         if not columns or not result.table_rows():
             return result.human_note() or ""
@@ -261,7 +268,7 @@ class Renderer:
         """Informational message to stderr (suppressed in JSON mode)."""
         if self.mode is OutputMode.JSON:
             return
-        self.err.print(text)
+        self.err.print(text, soft_wrap=True)
 
     def error(
         self,

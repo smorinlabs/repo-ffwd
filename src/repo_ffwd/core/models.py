@@ -31,7 +31,7 @@ JSON rendering is automatic via Pydantic's ``model_dump_json``.
 
 from enum import StrEnum
 from pathlib import Path
-from typing import Literal, override
+from typing import Literal, assert_never, override
 
 from pydantic import BaseModel, Field
 
@@ -69,6 +69,14 @@ class CLIResult(BaseModel):
 
     def human_note(self) -> str | None:
         """Optional plain message shown when there is nothing tabular to show."""
+        return None
+
+    def render_text(self) -> str | None:
+        """Optional custom Rich-markup text view, bypassing table rendering."""
+        return None
+
+    def render_markdown(self) -> str | None:
+        """Optional custom Markdown view, bypassing Markdown table rendering."""
         return None
 
 
@@ -448,6 +456,31 @@ class SyncReport(CLIResult):
         return None
 
 
+class StatusSyncState(StrEnum):
+    """Remote synchronization state for a single repository in ``repo status``."""
+
+    CLEAN = "clean"
+    AHEAD = "ahead"
+    BEHIND = "behind"
+    DIVERGED = "diverged"
+    LOCAL_ONLY = "local_only"
+    NO_TRACKING = "no_tracking"
+    ERROR = "error"
+
+
+class StatusFilter(StrEnum):
+    """Filter predicate choices for ``repo status --filter``."""
+
+    ALL = "all"
+    DIRTY = "dirty"
+    CLEAN = "clean"
+    AHEAD = "ahead"
+    BEHIND = "behind"
+    DIVERGED = "diverged"
+    LOCAL = "local"
+    ISSUES = "issues"
+
+
 class RepoStatusItem(BaseModel):
     """Read-only status for a single repository (``repo status``)."""
 
@@ -463,10 +496,117 @@ class RepoStatusItem(BaseModel):
     behind: int = 0
     remote_protocol: RemoteProtocol = "none"
     detail: str = ""
+    sync_state: StatusSyncState = StatusSyncState.CLEAN
+    has_issues: bool = False
 
     @property
     def is_clean(self) -> bool:
         return self.tracked_dirty == 0 and self.untracked == 0
+
+
+def matches_status_filter(item: RepoStatusItem, filt: StatusFilter) -> bool:
+    """Return True when ``item`` satisfies ``filt``."""
+    match filt:
+        case StatusFilter.ALL:
+            return True
+        case StatusFilter.DIRTY:
+            return not item.is_clean
+        case StatusFilter.CLEAN:
+            return item.is_clean and item.sync_state is StatusSyncState.CLEAN
+        case StatusFilter.AHEAD:
+            return item.ahead > 0
+        case StatusFilter.BEHIND:
+            return item.behind > 0
+        case StatusFilter.DIVERGED:
+            return item.sync_state is StatusSyncState.DIVERGED
+        case StatusFilter.LOCAL:
+            return item.sync_state is StatusSyncState.LOCAL_ONLY
+        case StatusFilter.ISSUES:
+            return item.has_issues
+        case _:  # pragma: no cover — exhaustive over StatusFilter
+            assert_never(filt)
+
+
+def _format_sync_plain(item: RepoStatusItem) -> str:
+    match item.sync_state:
+        case StatusSyncState.CLEAN:
+            return "clean"
+        case StatusSyncState.AHEAD:
+            return f"ahead +{item.ahead}"
+        case StatusSyncState.BEHIND:
+            return f"behind -{item.behind}"
+        case StatusSyncState.DIVERGED:
+            return f"diverged +{item.ahead}/-{item.behind}"
+        case StatusSyncState.LOCAL_ONLY:
+            return "local"
+        case StatusSyncState.NO_TRACKING:
+            return "-"
+        case StatusSyncState.ERROR:
+            return "error"
+        case _:  # pragma: no cover — exhaustive over StatusSyncState
+            assert_never(item.sync_state)
+
+
+def _format_sync_rich(item: RepoStatusItem) -> str:
+    match item.sync_state:
+        case StatusSyncState.CLEAN:
+            return "[green]✓[/green]"
+        case StatusSyncState.AHEAD:
+            return f"[yellow]↑{item.ahead}[/yellow]"
+        case StatusSyncState.BEHIND:
+            return f"[red]↓{item.behind}[/red]"
+        case StatusSyncState.DIVERGED:
+            return f"[red]↕+{item.ahead}/-{item.behind}[/red]"
+        case StatusSyncState.LOCAL_ONLY:
+            return "[blue]L[/blue]"
+        case StatusSyncState.NO_TRACKING:
+            return "[dim]-[/dim]"
+        case StatusSyncState.ERROR:
+            return "[red]✗[/red]"
+        case _:  # pragma: no cover — exhaustive over StatusSyncState
+            assert_never(item.sync_state)
+
+
+def _format_sync_detail_rich(item: RepoStatusItem) -> str:
+    match item.sync_state:
+        case StatusSyncState.CLEAN:
+            return "[green]✓ In sync with remote[/green]"
+        case StatusSyncState.AHEAD:
+            return f"[yellow]↑ {item.ahead} commit(s) ahead of remote[/yellow]"
+        case StatusSyncState.BEHIND:
+            return f"[red]↓ {item.behind} commit(s) behind remote[/red]"
+        case StatusSyncState.DIVERGED:
+            return f"[red]↕ Diverged (+{item.ahead} ahead, -{item.behind} behind)[/red]"
+        case StatusSyncState.LOCAL_ONLY:
+            return "[blue]L Local only (no remotes configured)[/blue]"
+        case StatusSyncState.NO_TRACKING:
+            return "[dim]- No remote tracking branch[/dim]"
+        case StatusSyncState.ERROR:
+            reason = item.detail or "fetch failed"
+            return f"[red]✗ Error: {reason}[/red]"
+        case _:  # pragma: no cover — exhaustive over StatusSyncState
+            assert_never(item.sync_state)
+
+
+def _format_sync_detail_plain(item: RepoStatusItem) -> str:
+    match item.sync_state:
+        case StatusSyncState.CLEAN:
+            return "In sync with remote"
+        case StatusSyncState.AHEAD:
+            return f"Ahead (+{item.ahead} commit(s))"
+        case StatusSyncState.BEHIND:
+            return f"Behind (-{item.behind} commit(s))"
+        case StatusSyncState.DIVERGED:
+            return f"Diverged (+{item.ahead} ahead, -{item.behind} behind)"
+        case StatusSyncState.LOCAL_ONLY:
+            return "Local only (no remotes configured)"
+        case StatusSyncState.NO_TRACKING:
+            return "No remote tracking branch"
+        case StatusSyncState.ERROR:
+            reason = item.detail or "fetch failed"
+            return f"Error: {reason}"
+        case _:  # pragma: no cover — exhaustive over StatusSyncState
+            assert_never(item.sync_state)
 
 
 class RepoStatusReport(CLIResult):
@@ -475,10 +615,45 @@ class RepoStatusReport(CLIResult):
     items: list[RepoStatusItem]
     fetched: bool = False
     skipped_worktrees: int = 0
+    detailed: bool = Field(default=False, exclude=True)
+    filters: list[StatusFilter] = Field(default_factory=list, exclude=True)
+
+    def _active_filters(self) -> list[StatusFilter]:
+        if not self.filters or StatusFilter.ALL in self.filters:
+            return []
+        return list(dict.fromkeys(self.filters))
+
+    def summary_counts(self) -> dict[str, int]:
+        """Return summary counts over reported repositories."""
+        return {
+            "total": len(self.items),
+            "dirty": sum(1 for i in self.items if not i.is_clean),
+            "ahead": sum(
+                1 for i in self.items if i.sync_state is StatusSyncState.AHEAD
+            ),
+            "behind": sum(
+                1 for i in self.items if i.sync_state is StatusSyncState.BEHIND
+            ),
+            "diverged": sum(
+                1 for i in self.items if i.sync_state is StatusSyncState.DIVERGED
+            ),
+            "local": sum(
+                1 for i in self.items if i.sync_state is StatusSyncState.LOCAL_ONLY
+            ),
+            "errors": sum(
+                1 for i in self.items if i.sync_state is StatusSyncState.ERROR
+            ),
+        }
 
     @override
     def table_title(self) -> str | None:
         mode = "fetched" if self.fetched else "local"
+        active = self._active_filters()
+        if active:
+            filter_label = ", ".join(f.value for f in active)
+            return (
+                f"Repository status ({len(self.items)}, {mode}, filter: {filter_label})"
+            )
         return f"Repository status ({len(self.items)}, {mode})"
 
     @override
@@ -486,6 +661,7 @@ class RepoStatusReport(CLIResult):
         return [
             "Repository",
             "Branch",
+            "Sync",
             "Dirty",
             "Untracked",
             "Ahead",
@@ -499,6 +675,7 @@ class RepoStatusReport(CLIResult):
             [
                 i.relative_path,
                 i.branch,
+                _format_sync_plain(i),
                 str(i.tracked_dirty) if i.tracked_dirty else "-",
                 str(i.untracked) if i.untracked else "-",
                 str(i.ahead) if i.ahead else "-",
@@ -509,8 +686,94 @@ class RepoStatusReport(CLIResult):
         ]
 
     @override
+    def table_rows_rich(self) -> list[list[str]]:
+        return [
+            [
+                i.relative_path,
+                f"[cyan]{i.branch}[/cyan]",
+                _format_sync_rich(i),
+                f"[red]{i.tracked_dirty}[/red]" if i.tracked_dirty else "[dim]-[/dim]",
+                f"[yellow]{i.untracked}[/yellow]" if i.untracked else "[dim]-[/dim]",
+                f"[yellow]{i.ahead}[/yellow]" if i.ahead else "[dim]-[/dim]",
+                f"[red]{i.behind}[/red]" if i.behind else "[dim]-[/dim]",
+                i.remote_protocol,
+            ]
+            for i in self.items
+        ]
+
+    @override
+    def render_text(self) -> str | None:
+        if not self.detailed or not self.items:
+            return None
+        blocks: list[str] = []
+        title = self.table_title()
+        if title:
+            blocks.append(f"[bold]{title}[/bold]")
+        for item in self.items:
+            default_label = item.default_branch or "-"
+            lines = [
+                f"[bold cyan]{item.relative_path}[/bold cyan]",
+                f"  Path: {item.path}",
+                f"  Branch: [cyan]{item.branch}[/cyan] (default: {default_label})",
+            ]
+            if item.is_clean:
+                lines.append("  Working tree: [green]✓ Clean[/green]")
+            else:
+                wt_parts: list[str] = []
+                if item.tracked_dirty:
+                    wt_parts.append(f"[red]✗ {item.tracked_dirty} dirty tracked[/red]")
+                if item.untracked:
+                    wt_parts.append(f"[yellow]{item.untracked} untracked[/yellow]")
+                lines.append(f"  Working tree: {', '.join(wt_parts)}")
+            lines.append(f"  Sync: {_format_sync_detail_rich(item)}")
+            lines.append(f"  Protocol: {item.remote_protocol}")
+            if item.detail and item.sync_state is not StatusSyncState.ERROR:
+                lines.append(f"  Detail: {item.detail}")
+            blocks.append("\n".join(lines))
+        return "\n\n".join(blocks)
+
+    @override
+    def render_markdown(self) -> str | None:
+        if not self.detailed or not self.items:
+            return None
+        sections: list[str] = []
+        title = self.table_title()
+        if title:
+            sections.append(f"## {title}")
+        for item in self.items:
+            default_label = item.default_branch or "-"
+            if item.is_clean:
+                wt_str = "Clean"
+            else:
+                wt_parts: list[str] = []
+                if item.tracked_dirty:
+                    wt_parts.append(f"{item.tracked_dirty} dirty tracked")
+                if item.untracked:
+                    wt_parts.append(f"{item.untracked} untracked")
+                wt_str = ", ".join(wt_parts)
+            lines = [
+                f"### {item.relative_path}",
+                "",
+                f"- **Path:** `{item.path}`",
+                f"- **Branch:** `{item.branch}` (default: `{default_label}`)",
+                f"- **Working tree:** {wt_str}",
+                f"- **Sync:** {_format_sync_detail_plain(item)}",
+                f"- **Protocol:** `{item.remote_protocol}`",
+            ]
+            if item.detail and item.sync_state is not StatusSyncState.ERROR:
+                lines.append(f"- **Detail:** {item.detail}")
+            sections.append("\n".join(lines))
+        return "\n\n".join(sections)
+
+    @override
     def human_note(self) -> str | None:
-        return "No repositories found." if not self.items else None
+        if not self.items:
+            active = self._active_filters()
+            if active:
+                filter_label = ", ".join(f.value for f in active)
+                return f"No repositories match filter: {filter_label}."
+            return "No repositories found."
+        return None
 
 
 class ConfigViewEntry(BaseModel):

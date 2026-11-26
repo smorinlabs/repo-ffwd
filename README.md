@@ -82,7 +82,7 @@ repo-ffwd doctor
 
 - `repo-ffwd repo sync` — Fetch and fast-forward default branches in parallel (`--root`, `--max-depth`, `--concurrency`, `--timeout`, `--autostash`, `--dry-run`, `--all`, `--tag`, `--fail-fast`)
 - `repo-ffwd repo list` — Offline discovery preview
-- `repo-ffwd repo status` — Read-only branch, dirty, and ahead/behind status (`--fetch` opt-in)
+- `repo-ffwd repo status` — Read-only branch, sync state, dirty, and ahead/behind status (`--fetch`, repeatable `--filter`, `--detailed`, `--legend`)
 - `repo-ffwd config init | view | path | get | set` — Configuration management
 - `repo-ffwd doctor` — Check Python, `git`, config file, and configured roots
 - `repo-ffwd completion bash|zsh|fish` — Shell completions

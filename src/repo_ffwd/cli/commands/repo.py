@@ -25,6 +25,7 @@ from threading import Event
 from types import FrameType
 
 import click
+from rich.panel import Panel
 
 from repo_ffwd.cli.commands.config import run_guided_config_init
 from repo_ffwd.cli.context import AppContext
@@ -34,7 +35,7 @@ from repo_ffwd.cli.output import OutputMode
 from repo_ffwd.composition import build_repo_sync_service
 from repo_ffwd.core.config import load_config
 from repo_ffwd.core.errors import ConfigError
-from repo_ffwd.core.models import RepoSyncItem, SyncOutcome
+from repo_ffwd.core.models import RepoSyncItem, StatusFilter, SyncOutcome
 from repo_ffwd.core.settings import RootConfig
 
 
@@ -348,6 +349,41 @@ def repo_list(
     app.renderer.render(result)
 
 
+_STATUS_FILTER_CHOICES: list[str] = [f.value for f in StatusFilter]
+
+
+def _status_legend_panel() -> Panel:
+    """Build a Rich panel explaining ``repo status`` columns and symbols."""
+    legend_text = (
+        "[bold cyan]Columns:[/bold cyan]\n"
+        "  [bold]Repository[/bold]  Relative path under the scan root\n"
+        "  [bold]Branch[/bold]      Current checked-out branch (or detached)\n"
+        "  [bold]Sync[/bold]        Remote sync state against default branch\n"
+        "  [bold]Dirty[/bold]       Tracked modified/staged files\n"
+        "  [bold]Untracked[/bold]   Untracked files in the working tree\n"
+        "  [bold]Ahead[/bold]       Commits ahead of remote\n"
+        "  [bold]Behind[/bold]      Commits behind remote\n"
+        "  [bold]Protocol[/bold]    Remote transport (https, ssh, local, none)\n\n"
+        "[bold cyan]Sync Symbols:[/bold cyan]\n"
+        "  [green]✓[/green]        Clean (in sync with remote)\n"
+        "  [yellow]↑N[/yellow]       Ahead by N commit(s)\n"
+        "  [red]↓N[/red]       Behind by N commit(s)\n"
+        "  [red]↕+A/-B[/red]   Diverged (A ahead, B behind)\n"
+        "  [blue]L[/blue]        Local only (no remotes configured)\n"
+        "  [dim]-[/dim]        No remote tracking branch\n"
+        "  [red]✗[/red]        Error (e.g. fetch failed)\n\n"
+        "[bold cyan]Tips:[/bold cyan]\n"
+        "  Use [bold]--filter dirty|ahead|behind|diverged|local|issues|clean[/bold] (repeatable)\n"
+        "  Use [bold]--detailed[/bold] for an expanded per-repo breakdown and [bold]--fetch[/bold] to refresh remotes"
+    )
+    return Panel(
+        legend_text,
+        title="[bold]Repository Status Legend[/bold]",
+        border_style="cyan",
+        padding=(1, 2),
+    )
+
+
 @repo_group.command(name="status")
 @click.option(
     "--root",
@@ -371,6 +407,27 @@ def repo_list(
     "--fetch/--no-fetch",
     default=False,
     help="Fetch remotes before computing ahead/behind counts (offline by default).",
+)
+@click.option(
+    "--filter",
+    "filters",
+    type=click.Choice(_STATUS_FILTER_CHOICES),
+    multiple=True,
+    default=(StatusFilter.ALL.value,),
+    show_default=True,
+    help="Filter repositories by status (repeatable; OR matching).",
+)
+@click.option(
+    "--detailed",
+    is_flag=True,
+    default=False,
+    help="Show an expanded per-repository breakdown in text and Markdown output.",
+)
+@click.option(
+    "--legend",
+    is_flag=True,
+    default=False,
+    help="Display a column and symbol legend before text output.",
 )
 @click.option(
     "--concurrency",
@@ -399,6 +456,9 @@ def repo_status(
     max_depth: int | None,
     tags: tuple[str, ...],
     fetch: bool,
+    filters: tuple[str, ...],
+    detailed: bool,
+    legend: bool,
     concurrency: int | None,
     timeout_seconds: int | None,
     include_worktrees: bool | None,
@@ -407,6 +467,8 @@ def repo_status(
 
     Examples:
         repo-ffwd repo status
+        repo-ffwd repo status --filter dirty --filter ahead
+        repo-ffwd repo status --detailed --legend
         repo-ffwd repo status --fetch --json
     """
     settings = app.config.settings
@@ -425,6 +487,7 @@ def repo_status(
         if include_worktrees is not None
         else settings.sync.include_worktrees
     )
+    parsed_filters = [StatusFilter(f) for f in filters] or [StatusFilter.ALL]
 
     svc = build_repo_sync_service()
     report = svc.status_repos(
@@ -437,5 +500,27 @@ def repo_status(
         fetch=fetch,
         concurrency=eff_concurrency,
         timeout_seconds=eff_timeout,
+        filters=parsed_filters,
+        detailed=detailed,
     )
+    if legend and app.output_mode is OutputMode.TEXT:
+        target_console = (
+            app.renderer.err if app.renderer.output_file else app.renderer.out
+        )
+        target_console.print(_status_legend_panel())
     app.renderer.render(report)
+
+    if not app.quiet and app.output_mode is OutputMode.TEXT and report.items:
+        counts = report.summary_counts()
+        summary_parts = [
+            f"total={counts['total']}",
+            f"dirty={counts['dirty']}",
+            f"ahead={counts['ahead']}",
+            f"behind={counts['behind']}",
+            f"diverged={counts['diverged']}",
+            f"local={counts['local']}",
+            f"worktrees_skipped={report.skipped_worktrees}",
+        ]
+        if counts["errors"]:
+            summary_parts.append(f"errors={counts['errors']}")
+        app.renderer.message("Summary: " + ", ".join(summary_parts))

@@ -6,7 +6,14 @@ from pathlib import Path
 from unittest.mock import patch
 
 from repo_ffwd.core.adapters.git_cli import SubprocessGitAdapter
-from repo_ffwd.core.models import GitExecResult, SyncOutcome
+from repo_ffwd.core.models import (
+    GitExecResult,
+    RepoStatusItem,
+    RepoStatusReport,
+    StatusFilter,
+    StatusSyncState,
+    SyncOutcome,
+)
 from repo_ffwd.core.services.repos import RepoSyncService
 from repo_ffwd.core.settings import RootConfig
 
@@ -285,3 +292,282 @@ def test_sync_timeout_and_ssh_transport_preservation(tmp_path):
         )
     assert report.has_failures()
     assert report.items[0].outcome is SyncOutcome.TIMEOUT
+
+
+def test_status_sync_states_has_issues_and_filters(tmp_path):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir(parents=True, exist_ok=True)
+
+    # 1. Clean repo
+    _make_remote_and_clone(tmp_path, "r-clean")
+
+    # 2. Dirty repo (tracked edit + untracked file)
+    _, _, dirty_clone = _make_remote_and_clone(tmp_path, "r-dirty")
+    (dirty_clone / "README.md").write_text("modified\n", encoding="utf-8")
+    (dirty_clone / "extra.txt").write_text("untracked\n", encoding="utf-8")
+
+    # 3. Ahead repo
+    _, _, ahead_clone = _make_remote_and_clone(tmp_path, "r-ahead")
+    (ahead_clone / "a.txt").write_text("ahead\n", encoding="utf-8")
+    _git(ahead_clone, "add", "a.txt")
+    _git(ahead_clone, "commit", "-m", "local ahead")
+
+    # 4. Behind repo (fetched so origin/main is ahead locally)
+    _, behind_up, behind_clone = _make_remote_and_clone(tmp_path, "r-behind")
+    _push_upstream_commit(behind_up, "b.txt", "b\n", "upstream behind")
+    _git(behind_clone, "fetch", "origin")
+
+    # 5. Diverged repo
+    _, div_up, div_clone = _make_remote_and_clone(tmp_path, "r-diverged")
+    _push_upstream_commit(div_up, "u.txt", "u\n", "upstream commit")
+    (div_clone / "l.txt").write_text("l\n", encoding="utf-8")
+    _git(div_clone, "add", "l.txt")
+    _git(div_clone, "commit", "-m", "local commit")
+    _git(div_clone, "fetch", "origin")
+
+    # 6. Local-only repo (no remotes)
+    local_repo = workspace / "r-local"
+    local_repo.mkdir()
+    _git(local_repo, "init", "-b", "main")
+    _git(local_repo, "config", "user.email", "test@example.com")
+    _git(local_repo, "config", "user.name", "Test User")
+    (local_repo / "file.txt").write_text("local\n", encoding="utf-8")
+    _git(local_repo, "add", "file.txt")
+    _git(local_repo, "commit", "-m", "init local")
+
+    # 7. No-tracking repo (has a remote, never fetched so no remote refs)
+    notrack_repo = workspace / "r-notracking"
+    notrack_repo.mkdir()
+    _git(notrack_repo, "init", "-b", "main")
+    _git(notrack_repo, "config", "user.email", "test@example.com")
+    _git(notrack_repo, "config", "user.name", "Test User")
+    (notrack_repo / "file.txt").write_text("nt\n", encoding="utf-8")
+    _git(notrack_repo, "add", "file.txt")
+    _git(notrack_repo, "commit", "-m", "init notracking")
+    _git(notrack_repo, "remote", "add", "origin", "https://example.invalid/repo.git")
+
+    svc = RepoSyncService(SubprocessGitAdapter())
+    root = [RootConfig(path=str(workspace))]
+    full = svc.status_repos(root)
+    by_name = {i.name: i for i in full.items}
+
+    assert by_name["r-clean"].sync_state is StatusSyncState.CLEAN
+    assert by_name["r-clean"].has_issues is False
+
+    assert by_name["r-dirty"].sync_state is StatusSyncState.CLEAN
+    assert by_name["r-dirty"].tracked_dirty == 1
+    assert by_name["r-dirty"].untracked == 1
+    assert by_name["r-dirty"].has_issues is True
+
+    assert by_name["r-ahead"].sync_state is StatusSyncState.AHEAD
+    assert by_name["r-ahead"].ahead == 1
+    assert by_name["r-ahead"].has_issues is True
+
+    assert by_name["r-behind"].sync_state is StatusSyncState.BEHIND
+    assert by_name["r-behind"].behind == 1
+    assert by_name["r-behind"].has_issues is True
+
+    assert by_name["r-diverged"].sync_state is StatusSyncState.DIVERGED
+    assert by_name["r-diverged"].ahead == 1
+    assert by_name["r-diverged"].behind == 1
+    assert by_name["r-diverged"].has_issues is True
+
+    assert by_name["r-local"].sync_state is StatusSyncState.LOCAL_ONLY
+    assert by_name["r-local"].has_issues is False
+
+    assert by_name["r-notracking"].sync_state is StatusSyncState.NO_TRACKING
+    assert by_name["r-notracking"].has_issues is False
+
+    counts = full.summary_counts()
+    assert counts == {
+        "total": 7,
+        "dirty": 1,
+        "ahead": 1,
+        "behind": 1,
+        "diverged": 1,
+        "local": 1,
+        "errors": 0,
+    }
+
+    # Single filters
+    assert [
+        i.name for i in svc.status_repos(root, filters=[StatusFilter.DIRTY]).items
+    ] == ["r-dirty"]
+    assert [
+        i.name for i in svc.status_repos(root, filters=[StatusFilter.CLEAN]).items
+    ] == ["r-clean"]
+    assert [
+        i.name for i in svc.status_repos(root, filters=[StatusFilter.AHEAD]).items
+    ] == [
+        "r-ahead",
+        "r-diverged",
+    ]
+    assert [
+        i.name for i in svc.status_repos(root, filters=[StatusFilter.BEHIND]).items
+    ] == [
+        "r-behind",
+        "r-diverged",
+    ]
+    assert [
+        i.name for i in svc.status_repos(root, filters=[StatusFilter.DIVERGED]).items
+    ] == ["r-diverged"]
+    assert [
+        i.name for i in svc.status_repos(root, filters=[StatusFilter.LOCAL]).items
+    ] == ["r-local"]
+    assert [
+        i.name for i in svc.status_repos(root, filters=[StatusFilter.ISSUES]).items
+    ] == [
+        "r-ahead",
+        "r-behind",
+        "r-dirty",
+        "r-diverged",
+    ]
+
+    # Repeatable OR filter
+    combo = svc.status_repos(root, filters=[StatusFilter.DIRTY, StatusFilter.LOCAL])
+    assert [i.name for i in combo.items] == ["r-dirty", "r-local"]
+
+
+def test_status_fetch_error_marks_error_state(tmp_path):
+    _make_remote_and_clone(tmp_path, "err-repo")
+    adapter = SubprocessGitAdapter()
+    with patch.object(
+        adapter,
+        "fetch",
+        return_value=GitExecResult(returncode=128, stderr="fatal: network unreachable"),
+    ):
+        svc = RepoSyncService(adapter)
+        report = svc.status_repos(
+            [RootConfig(path=str(tmp_path / "workspace"))], fetch=True
+        )
+    assert len(report.items) == 1
+    item = report.items[0]
+    assert item.sync_state is StatusSyncState.ERROR
+    assert item.has_issues is True
+    assert "network unreachable" in item.detail
+
+
+def test_status_report_table_and_detailed_formatting():
+    items = [
+        RepoStatusItem(
+            name="clean",
+            path="/ws/clean",
+            root="/ws",
+            relative_path="clean",
+            branch="main",
+            default_branch="main",
+            remote_protocol="https",
+            sync_state=StatusSyncState.CLEAN,
+            has_issues=False,
+        ),
+        RepoStatusItem(
+            name="ahead",
+            path="/ws/ahead",
+            root="/ws",
+            relative_path="ahead",
+            branch="main",
+            default_branch="main",
+            ahead=2,
+            remote_protocol="ssh",
+            sync_state=StatusSyncState.AHEAD,
+            has_issues=True,
+        ),
+        RepoStatusItem(
+            name="behind",
+            path="/ws/behind",
+            root="/ws",
+            relative_path="behind",
+            branch="main",
+            default_branch="main",
+            behind=3,
+            remote_protocol="ssh",
+            sync_state=StatusSyncState.BEHIND,
+            has_issues=True,
+        ),
+        RepoStatusItem(
+            name="div",
+            path="/ws/div",
+            root="/ws",
+            relative_path="div",
+            branch="main",
+            default_branch="main",
+            tracked_dirty=1,
+            untracked=2,
+            ahead=1,
+            behind=4,
+            remote_protocol="https",
+            sync_state=StatusSyncState.DIVERGED,
+            has_issues=True,
+        ),
+        RepoStatusItem(
+            name="loc",
+            path="/ws/loc",
+            root="/ws",
+            relative_path="loc",
+            branch="main",
+            remote_protocol="none",
+            sync_state=StatusSyncState.LOCAL_ONLY,
+            has_issues=False,
+        ),
+        RepoStatusItem(
+            name="nt",
+            path="/ws/nt",
+            root="/ws",
+            relative_path="nt",
+            branch="feat",
+            remote_protocol="https",
+            sync_state=StatusSyncState.NO_TRACKING,
+            has_issues=False,
+        ),
+        RepoStatusItem(
+            name="err",
+            path="/ws/err",
+            root="/ws",
+            relative_path="err",
+            branch="main",
+            remote_protocol="https",
+            detail="auth failed",
+            sync_state=StatusSyncState.ERROR,
+            has_issues=True,
+        ),
+    ]
+    report = RepoStatusReport(items=items, detailed=False)
+    assert "Sync" in report.table_columns()
+    sync_idx = report.table_columns().index("Sync")
+
+    plain_sync = [row[sync_idx] for row in report.table_rows()]
+    assert plain_sync == [
+        "clean",
+        "ahead +2",
+        "behind -3",
+        "diverged +1/-4",
+        "local",
+        "-",
+        "error",
+    ]
+    rich_sync = [row[sync_idx] for row in report.table_rows_rich()]
+    assert rich_sync == [
+        "[green]✓[/green]",
+        "[yellow]↑2[/yellow]",
+        "[red]↓3[/red]",
+        "[red]↕+1/-4[/red]",
+        "[blue]L[/blue]",
+        "[dim]-[/dim]",
+        "[red]✗[/red]",
+    ]
+    assert report.render_text() is None
+    assert report.render_markdown() is None
+
+    detailed = RepoStatusReport(items=items, detailed=True)
+    text_out = detailed.render_text()
+    md_out = detailed.render_markdown()
+    assert text_out is not None
+    assert md_out is not None
+    assert "Diverged (+1 ahead, -4 behind)" in text_out
+    assert "auth failed" in text_out
+    assert "### div" in md_out
+    assert "1 dirty tracked, 2 untracked" in md_out
+    assert "Error: auth failed" in md_out
+
+    empty_filtered = RepoStatusReport(items=[], filters=[StatusFilter.DIRTY])
+    assert empty_filtered.human_note() == "No repositories match filter: dirty."
