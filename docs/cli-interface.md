@@ -88,9 +88,12 @@ Available on every command (R4.1–R4.4). Exact flag matching is enforced — pr
 | `--max-depth` | int (≥ 0) | config (`2`) | No | — | Max directory depth |
 | `--tag` | string | all | Yes | — | Filter roots by tag |
 | `--fetch` | bool | `false` | No | `--no-fetch` | Fetch remotes before computing ahead/behind counts |
+| `--filter` | `all\|dirty\|clean\|ahead\|behind\|diverged\|local\|issues` | `all` | Yes | — | Filter repositories by status (OR matching when repeated) |
+| `--detailed` | bool | `false` | No | — | Expanded per-repository breakdown in text and Markdown (JSON unchanged) |
+| `--legend` | bool | `false` | No | — | Print a column and symbol legend panel before text output (suppressed in `--json`) |
 | `--concurrency` | int (≥ 1) | config (`6`) | No | — | Worker count |
 | `--timeout` | int (≥ 1) | config (`60`) | No | — | Per-repo fetch timeout when `--fetch` is set |
-| `--include-worktrees` | bool | config (`false`) | No | — | Include linked worktrees |
+| `--include-worktrees` | bool | config (`false`) | No | `--no-include-worktrees` | Include linked worktrees |
 
 ### `repo-ffwd config`
 

@@ -157,7 +157,7 @@ def test_repo_sync_partial_failure_exits_one(runner, tmp_path):
 
 
 def test_repo_status_command(runner, tmp_path):
-    _make_remote_and_clone(tmp_path, "stat-repo")
+    _, clone = _make_remote_and_clone(tmp_path, "stat-repo")
     res = runner.invoke(
         cli,
         ["repo", "status", "--root", str(tmp_path / "workspace"), "--json"],
@@ -165,8 +165,115 @@ def test_repo_status_command(runner, tmp_path):
     assert res.exit_code == 0, res.output
     payload = json.loads(res.output)
     assert payload["fetched"] is False
-    assert payload["items"][0]["name"] == "stat-repo"
-    assert payload["items"][0]["branch"] == "main"
+    item = payload["items"][0]
+    assert item["name"] == "stat-repo"
+    assert item["branch"] == "main"
+    assert item["sync_state"] == "clean"
+    assert item["has_issues"] is False
+
+    # --detailed + --legend must leave --json output identical and parseable.
+    detailed_json = runner.invoke(
+        cli,
+        [
+            "repo",
+            "status",
+            "--root",
+            str(tmp_path / "workspace"),
+            "--detailed",
+            "--legend",
+            "--json",
+        ],
+    )
+    assert detailed_json.exit_code == 0, detailed_json.output
+    assert json.loads(detailed_json.output) == payload
+
+    # Text mode includes Sync symbol, legend panel when requested, and Summary on stderr.
+    (clone / "dirty.txt").write_text("untracked\n", encoding="utf-8")
+    text_res = runner.invoke(
+        cli,
+        ["repo", "status", "--root", str(tmp_path / "workspace"), "--legend"],
+    )
+    assert text_res.exit_code == 0, text_res.output
+    assert "Repository Status Legend" in text_res.output
+    assert "✓" in text_res.output
+    assert (
+        "Summary: total=1, dirty=1, ahead=0, behind=0, diverged=0, local=0, worktrees_skipped=0"
+        in text_res.output
+    )
+
+    # --quiet suppresses Summary line.
+    quiet_res = runner.invoke(
+        cli,
+        ["repo", "status", "--root", str(tmp_path / "workspace"), "--quiet"],
+    )
+    assert quiet_res.exit_code == 0, quiet_res.output
+    assert "Summary:" not in quiet_res.output
+
+    # --detailed in text and markdown modes.
+    det_text = runner.invoke(
+        cli,
+        ["repo", "status", "--root", str(tmp_path / "workspace"), "--detailed"],
+    )
+    assert det_text.exit_code == 0, det_text.output
+    assert "Path:" in det_text.output
+    assert "1 untracked" in det_text.output
+
+    det_md = runner.invoke(
+        cli,
+        [
+            "repo",
+            "status",
+            "--root",
+            str(tmp_path / "workspace"),
+            "--detailed",
+            "-o",
+            "markdown",
+        ],
+    )
+    assert det_md.exit_code == 0, det_md.output
+    assert "### stat-repo" in det_md.output
+    assert "Summary:" not in det_md.output
+
+    # Plain Markdown table uses ASCII sync text (no ANSI or Rich markup).
+    md_table = runner.invoke(
+        cli,
+        ["repo", "status", "--root", str(tmp_path / "workspace"), "-o", "markdown"],
+    )
+    assert md_table.exit_code == 0, md_table.output
+    assert "| Repository | Branch | Sync |" in md_table.output
+    assert "| stat-repo | main | clean |" in md_table.output
+
+    # Repeatable --filter with OR matching and empty-match note.
+    filt_hit = runner.invoke(
+        cli,
+        [
+            "repo",
+            "status",
+            "--root",
+            str(tmp_path / "workspace"),
+            "--filter",
+            "dirty",
+            "--filter",
+            "ahead",
+            "--json",
+        ],
+    )
+    assert filt_hit.exit_code == 0, filt_hit.output
+    assert [i["name"] for i in json.loads(filt_hit.output)["items"]] == ["stat-repo"]
+
+    filt_miss = runner.invoke(
+        cli,
+        [
+            "repo",
+            "status",
+            "--root",
+            str(tmp_path / "workspace"),
+            "--filter",
+            "behind",
+        ],
+    )
+    assert filt_miss.exit_code == 0, filt_miss.output
+    assert "No repositories match filter: behind." in filt_miss.output
 
 
 def test_config_view_and_doctor_with_roots(runner, tmp_path):

@@ -20,7 +20,7 @@
 """Repository discovery, status, and parallel fast-forward sync service."""
 
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 from datetime import UTC, datetime
 from pathlib import Path
@@ -33,8 +33,11 @@ from repo_ffwd.core.models import (
     RepoStatusItem,
     RepoStatusReport,
     RepoSyncItem,
+    StatusFilter,
+    StatusSyncState,
     SyncOutcome,
     SyncReport,
+    matches_status_filter,
 )
 from repo_ffwd.core.ports import GitPort
 from repo_ffwd.core.services.discovery import discover_repositories
@@ -100,8 +103,11 @@ class RepoSyncService:
         fetch: bool = False,
         concurrency: int = 6,
         timeout_seconds: int = 60,
+        filters: Sequence[StatusFilter] | None = None,
+        detailed: bool = False,
         cancel_event: Event | None = None,
     ) -> RepoStatusReport:
+        applied_filters = list(filters) if filters else [StatusFilter.ALL]
         found = discover_repositories(
             roots,
             git=self._git,
@@ -113,7 +119,11 @@ class RepoSyncService:
         )
         if not found.repos:
             return RepoStatusReport(
-                items=[], fetched=fetch, skipped_worktrees=len(found.skipped_worktrees)
+                items=[],
+                fetched=fetch,
+                skipped_worktrees=len(found.skipped_worktrees),
+                detailed=detailed,
+                filters=applied_filters,
             )
 
         ordered: dict[int, RepoStatusItem] = {}
@@ -135,10 +145,20 @@ class RepoSyncService:
             for fut in as_completed(futures):
                 ordered[futures[fut]] = fut.result()
 
+        items = [ordered[i] for i in sorted(ordered)]
+        if StatusFilter.ALL not in applied_filters:
+            items = [
+                item
+                for item in items
+                if any(matches_status_filter(item, f) for f in applied_filters)
+            ]
+
         return RepoStatusReport(
-            items=[ordered[i] for i in sorted(ordered)],
+            items=items,
             fetched=fetch,
             skipped_worktrees=len(found.skipped_worktrees),
+            detailed=detailed,
+            filters=applied_filters,
         )
 
     def sync_repos(
@@ -231,8 +251,15 @@ class RepoSyncService:
         path = Path(repo.path)
         branch = self._git.current_branch(path) or "(detached)"
         tracked, untracked = self._git.status_counts(path)
-        remote = _choose_remote(self._git, path, preferred_remote)
+        remotes = self._git.list_remotes(path)
+        remote: str | None = None
+        if preferred_remote in remotes:
+            remote = preferred_remote
+        elif len(remotes) == 1:
+            remote = remotes[0]
+
         detail = ""
+        fetch_failed = False
         if remote and fetch:
             res = self._git.fetch(
                 path,
@@ -242,6 +269,7 @@ class RepoSyncService:
                 retries=0,
             )
             if not res.ok:
+                fetch_failed = True
                 detail = _short_error(res.stderr, "fetch failed")
 
         default_branch = (
@@ -249,6 +277,7 @@ class RepoSyncService:
         )
         ahead = 0
         behind = 0
+        ab: tuple[int, int] | None = None
         if remote and default_branch:
             ref = "HEAD" if branch == default_branch else f"refs/heads/{default_branch}"
             ab = self._git.ahead_behind(
@@ -256,6 +285,34 @@ class RepoSyncService:
             )
             if ab is not None:
                 ahead, behind = ab
+
+        if fetch_failed:
+            sync_state = StatusSyncState.ERROR
+        elif not remotes:
+            sync_state = StatusSyncState.LOCAL_ONLY
+        elif remote is None or default_branch is None or ab is None:
+            sync_state = StatusSyncState.NO_TRACKING
+        elif ahead > 0 and behind > 0:
+            sync_state = StatusSyncState.DIVERGED
+        elif ahead > 0:
+            sync_state = StatusSyncState.AHEAD
+        elif behind > 0:
+            sync_state = StatusSyncState.BEHIND
+        else:
+            sync_state = StatusSyncState.CLEAN
+
+        has_issues = (
+            tracked > 0
+            or untracked > 0
+            or sync_state
+            in {
+                StatusSyncState.AHEAD,
+                StatusSyncState.BEHIND,
+                StatusSyncState.DIVERGED,
+                StatusSyncState.ERROR,
+            }
+        )
+
         return RepoStatusItem(
             name=repo.name,
             path=repo.path,
@@ -269,6 +326,8 @@ class RepoSyncService:
             behind=behind,
             remote_protocol=repo.remote_protocol,
             detail=detail,
+            sync_state=sync_state,
+            has_issues=has_issues,
         )
 
     def _sync_one(
