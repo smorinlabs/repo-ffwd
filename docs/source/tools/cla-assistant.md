@@ -71,5 +71,5 @@ CLA Assistant automates the process of managing Contributor License Agreements (
 - [CLA Assistant Website](https://cla-assistant.io)
 - [Individual CLA](../contributing/cla/individual_cla.md)
 - [Corporate CLA](../contributing/cla/corporate_cla.md)
-- [Repo Updater Contribution Guide](https://github.com/smorinlabs/repo-updater/blob/main/.github/CONTRIBUTING.md)
+- [Repo Ffwd Contribution Guide](https://github.com/smorinlabs/repo-ffwd/blob/main/.github/CONTRIBUTING.md)
 - [GitHub Docs: Configuring branches and merges](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository)

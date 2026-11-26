@@ -1,6 +1,6 @@
 # UV Package Manager
 
-UV is a fast Python package manager that provides efficient dependency management. This guide covers how to set up and use UV in the *Repo Updater* project.
+UV is a fast Python package manager that provides efficient dependency management. This guide covers how to set up and use UV in the *Repo Ffwd* project.
 
 ## Installation
 

@@ -1,4 +1,4 @@
-# CLAUDE.md - Claude Code entrypoint for Repo Updater
+# CLAUDE.md - Claude Code entrypoint for Repo Ffwd
 
 Canonical agent guidance lives in AGENTS.md (single source of truth — edit
 that file, not this one) and is imported below. Add ONLY Claude-specific

@@ -5,7 +5,7 @@ from datetime import date
 from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
 
-from repo_updater.web.versioning import V1_PREFIX, deprecation_headers
+from repo_ffwd.web.versioning import V1_PREFIX, deprecation_headers
 
 
 def test_v1_prefix_value():

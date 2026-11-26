@@ -20,10 +20,10 @@ from urllib.parse import parse_qs, urlparse
 import pytest
 import responses
 
-from repo_updater.core.adapters.in_memory import InMemoryProjectsRepository
-from repo_updater.core.adapters.py_api import PyApiProjectsRepository
-from repo_updater.core.models import Project
-from repo_updater.core.ports import ProjectsRepository
+from repo_ffwd.core.adapters.in_memory import InMemoryProjectsRepository
+from repo_ffwd.core.adapters.py_api import PyApiProjectsRepository
+from repo_ffwd.core.models import Project
+from repo_ffwd.core.ports import ProjectsRepository
 
 # --- canonical seed data (expressed once, shared by both adapters) -----------
 

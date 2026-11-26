@@ -95,9 +95,9 @@ class TestSkipConditions:
     @pytest.mark.parametrize(
         "origin",
         [
-            "https://github.com/smorinlabs/repo-updater.git",
-            "git@github.com:smorinlabs/repo-updater.git",
-            "https://github.com/smorin/repo-updater",
+            "https://github.com/smorinlabs/repo-ffwd.git",
+            "git@github.com:smorinlabs/repo-ffwd.git",
+            "https://github.com/smorin/repo-ffwd",
         ],
     )
     def test_canonical_origin_silences(self, tmp_path: Path, origin: str):

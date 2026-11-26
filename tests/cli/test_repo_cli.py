@@ -1,4 +1,4 @@
-"""End-to-end CLI tests for `repo-updater repo`, `config view`, and `doctor`."""
+"""End-to-end CLI tests for `repo-ffwd repo`, `config view`, and `doctor`."""
 
 import json
 import shutil
@@ -10,7 +10,7 @@ from unittest.mock import patch
 import pytest
 from click.testing import CliRunner
 
-from repo_updater.cli.main import cli
+from repo_ffwd.cli.main import cli
 
 _GIT = shutil.which("git") or "git"
 
@@ -123,7 +123,7 @@ def test_repo_sync_interactive_first_run_setup_creates_config(runner, tmp_path):
     # Simulate interactive TTY stdin + stderr so missing-config setup triggers.
     answers = f"y\n{workspace}\n2\n4\n30\nfalse\ntext\nauto\nwarning\n"
     with (
-        patch("repo_updater.cli.commands.repo._stdin_is_tty", return_value=True),
+        patch("repo_ffwd.cli.commands.repo._stdin_is_tty", return_value=True),
         patch("rich.console.Console.is_terminal", True),
     ):
         res = runner.invoke(

@@ -1,4 +1,4 @@
-"""Public hygiene and bundled plugin contract tests for repo-updater."""
+"""Public hygiene and bundled plugin contract tests for repo-ffwd."""
 
 from __future__ import annotations
 
@@ -7,8 +7,8 @@ import tomllib
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-PLUGIN_ROOT = REPO_ROOT / "plugins" / "repo-updater"
-SKILL_PATH = PLUGIN_ROOT / "skills" / "repo-updater" / "SKILL.md"
+PLUGIN_ROOT = REPO_ROOT / "plugins" / "repo-ffwd"
+SKILL_PATH = PLUGIN_ROOT / "skills" / "repo-ffwd" / "SKILL.md"
 
 
 def _project_version() -> str:
@@ -26,7 +26,7 @@ def test_bundled_plugin_manifests_exist_and_match_version() -> None:
         manifest_path = PLUGIN_ROOT / rel
         assert manifest_path.is_file(), f"missing {manifest_path}"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        assert manifest["name"] == "repo-updater"
+        assert manifest["name"] == "repo-ffwd"
         assert manifest["version"] == expected_version
 
     claude = json.loads(
@@ -44,9 +44,9 @@ def test_bundled_skill_frontmatter_is_valid() -> None:
     text = SKILL_PATH.read_text(encoding="utf-8").replace("\r\n", "\n")
     assert text.startswith("---\n")
     _, frontmatter, body = text.split("---\n", 2)
-    assert "name: repo-updater\n" in frontmatter
+    assert "name: repo-ffwd\n" in frontmatter
     assert "description:" in frontmatter
-    assert "repo-updater repo sync" in body
+    assert "repo-ffwd repo sync" in body
 
 
 def test_public_surfaces_contain_no_private_paths_or_aliases() -> None:
@@ -63,7 +63,7 @@ def test_public_surfaces_contain_no_private_paths_or_aliases() -> None:
         REPO_ROOT / "README.md",
         REPO_ROOT / "CONFORMANCE.md",
         REPO_ROOT / "docs" / "cli-interface.md",
-        *sorted((REPO_ROOT / "src" / "repo_updater").rglob("*.py")),
+        *sorted((REPO_ROOT / "src" / "repo_ffwd").rglob("*.py")),
         *sorted(PLUGIN_ROOT.rglob("*")),
     ]
     for path in scan_paths:

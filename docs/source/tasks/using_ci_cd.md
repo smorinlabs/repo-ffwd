@@ -13,7 +13,7 @@ The main workflow is `.github/workflows/ci.yml`. It runs for pull requests to
 | `changes` | Detects code, packaging and release-tooling changes. Documentation-only pull requests skip the heavier jobs. Release-please pull requests that only bump the version and changelog skip everything except `lint` and `build-smoke`. |
 | `lint` | Ruff lint and formatting, TOML formatting (Taplo), shell scripts (ShellCheck), and the Sphinx documentation build with warnings treated as errors. Each check reports even when another fails. |
 | `release-generation` | Runs the release generator tests (`bun test tests/release`) when the generator, its tests, its Bun toolchain or `release-please-config.json` change. |
-| `typecheck` | Types under `src/repo_updater/` with the web extra installed, plus import and module boundaries through import-linter and Tach. |
+| `typecheck` | Types under `src/repo_ffwd/` with the web extra installed, plus import and module boundaries through import-linter and Tach. |
 | `test` | Python 3.13 on Linux, macOS and Windows; Python 3.14 on Linux. Includes slow tests and excludes provisioned live tests. |
 | `test-otel` | Python 3.13 on Linux with the `otel` extra. Runs the web and logging tests so the tracing path is exercised. |
 | `build-smoke` | Builds wheel and source archives, checks metadata, installs both and runs the CLI. |
@@ -81,4 +81,4 @@ maintainers should add acceptance tests for their own application behavior.
 `main`. Tagged releases trigger `publish.yml`, which publishes to TestPyPI
 before PyPI. `publish-container.yml` checks containers on PRs and publishes
 stable release images separately. Configure the required services before the
-first release; see [release instructions](https://github.com/smorinlabs/repo-updater/blob/main/docs/RELEASE.md).
+first release; see [release instructions](https://github.com/smorinlabs/repo-ffwd/blob/main/docs/RELEASE.md).

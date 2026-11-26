@@ -11,11 +11,11 @@ import pytest
 import responses
 from pydantic import ValidationError
 
-from repo_updater.core.adapters.py_api import (
+from repo_ffwd.core.adapters.py_api import (
     PyApiProjectsRepository,
     _ProjectPayload,
 )
-from repo_updater.core.errors import APIError
+from repo_ffwd.core.errors import APIError
 
 BASE = PyApiProjectsRepository.BASE_URL
 

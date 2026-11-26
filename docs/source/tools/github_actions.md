@@ -1,13 +1,13 @@
 # GitHub Actions
 
-GitHub Actions runs automated checks and release workflows for Repo Updater.
+GitHub Actions runs automated checks and release workflows for Repo Ffwd.
 The checked-in configuration lives in
-[`.github/workflows/`](https://github.com/smorinlabs/repo-updater/tree/main/.github/workflows).
+[`.github/workflows/`](https://github.com/smorinlabs/repo-ffwd/tree/main/.github/workflows).
 
 ## Workflow configuration
 
 The main workflow is
-[`ci.yml`](https://github.com/smorinlabs/repo-updater/blob/main/.github/workflows/ci.yml).
+[`ci.yml`](https://github.com/smorinlabs/repo-ffwd/blob/main/.github/workflows/ci.yml).
 It runs for pushes to `main`, pull requests targeting `main`, and merge-queue
 validation through the `merge_group` event.
 

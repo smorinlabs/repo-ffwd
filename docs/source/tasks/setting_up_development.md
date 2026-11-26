@@ -39,7 +39,7 @@ hooks; use `just setup` before committing or pushing.
 
 ```bash
 just check
-uv run --locked repo_updater --version
+uv run --locked repo_ffwd --version
 ```
 
 `just check` runs the tests, lint and format checks, type checks, import
@@ -52,7 +52,7 @@ For individual checks, use the locked environment:
 ```bash
 uv run --locked ruff format --check .
 uv run --locked ruff check .
-uv run --locked --extra web ty check src/repo_updater/
+uv run --locked --extra web ty check src/repo_ffwd/
 uv run --locked --extra web pytest
 ```
 
@@ -60,7 +60,7 @@ uv run --locked --extra web pytest
 
 The repository's `mise.toml` and `.flox/` manifests provision the same native
 toolchain as the installers. See
-[ADR 0005](https://github.com/smorinlabs/repo-updater/blob/main/docs/adr/0005-mise-flox-first-class-toolchains.md)
+[ADR 0005](https://github.com/smorinlabs/repo-ffwd/blob/main/docs/adr/0005-mise-flox-first-class-toolchains.md)
 for the supported tools.
 
 With mise installed, run:

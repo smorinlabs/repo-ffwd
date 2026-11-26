@@ -1,6 +1,6 @@
 # Recommended VS Code Extensions
 
-This guide provides a list of recommended Visual Studio Code (VS Code) extensions to enhance your development experience with the Repo Updater project.
+This guide provides a list of recommended Visual Studio Code (VS Code) extensions to enhance your development experience with the Repo Ffwd project.
 
 ## Recommended Extensions
 

@@ -1,7 +1,7 @@
 {
-  "name": "repo-updater",
+  "name": "repo-ffwd",
   "interface": {
-    "displayName": "repo-updater"
+    "displayName": "repo-ffwd"
   },
   "plugins": [
     {

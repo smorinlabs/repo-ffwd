@@ -33,13 +33,13 @@ Open the **Run & Debug** panel and select one of the configurations:
     "name": "Python: Launch Main",
     "type": "python",
     "request": "launch",
-    "program": "${workspaceFolder}/src/repo_updater/cli/main.py"
+    "program": "${workspaceFolder}/src/repo_ffwd/cli/main.py"
   },
   {
     "name": "Python: Launch Main (With Args)",
     "type": "python",
     "request": "launch",
-    "program": "${workspaceFolder}/src/repo_updater/cli/main.py",
+    "program": "${workspaceFolder}/src/repo_ffwd/cli/main.py",
     "args": ["projects", "list", "--workspace", "test", "--limit", "10"]
   }
 ]

@@ -236,7 +236,7 @@ jobs:
         run: uv sync --locked --group dev --extra web
       - name: ty check
         if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
-        run: uv run --no-sync ty check src/repo_updater/
+        run: uv run --no-sync ty check src/repo_ffwd/
       - name: import-linter (HEX-30)
         if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
         run: uv run --no-sync lint-imports
@@ -298,7 +298,7 @@ jobs:
         # combine coverage from all workers automatically.
         run: >-
           uv run --no-sync pytest -m "not live" -n auto
-          --cov=repo_updater --cov-report=xml
+          --cov=repo_ffwd --cov-report=xml
       - name: Run tests
         if: ${{ !(matrix.os == 'ubuntu' && matrix.python-version == '3.13') }}
         run: uv run --no-sync pytest -m "not live" -n auto
@@ -364,9 +364,9 @@ jobs:
       - name: Check dist metadata (twine)
         run: uv run --no-sync twine check dist/*
       - name: Smoke test wheel install
-        run: uvx --from "$(ls dist/*.whl)" repo_updater --version
+        run: uvx --from "$(ls dist/*.whl)" repo_ffwd --version
       - name: Smoke test sdist install
-        run: uvx --from "$(ls dist/*.tar.gz)" repo_updater --version
+        run: uvx --from "$(ls dist/*.tar.gz)" repo_ffwd --version
 
   # WL-006 - single gate for branch protection. Require ONLY this check;
   # job renames/additions then never desync the required-checks list.

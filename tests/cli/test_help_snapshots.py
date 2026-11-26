@@ -11,7 +11,7 @@ import click
 import pytest
 from click.testing import CliRunner
 
-from repo_updater.cli.main import cli
+from repo_ffwd.cli.main import cli
 
 
 def _walk(cmd: click.Command, path: tuple[str, ...]):
@@ -26,7 +26,7 @@ ALL_COMMANDS = list(_walk(cli, ()))
 
 
 @pytest.mark.parametrize(
-    "path", ALL_COMMANDS, ids=lambda p: " ".join(("repo_updater", *p))
+    "path", ALL_COMMANDS, ids=lambda p: " ".join(("repo_ffwd", *p))
 )
 def test_help_snapshot(path, snapshot, monkeypatch):
     """Each command's --help output must match its committed golden snapshot."""

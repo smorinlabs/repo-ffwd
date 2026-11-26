@@ -1,6 +1,6 @@
 # Reference Overview
 
-Welcome to the Reference section of the Repo Updater documentation. This section provides detailed technical references for various aspects of the project.
+Welcome to the Reference section of the Repo Ffwd documentation. This section provides detailed technical references for various aspects of the project.
 ```{toctree}
 ---
 maxdepth: 2

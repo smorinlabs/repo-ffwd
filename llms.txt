@@ -1,7 +1,7 @@
-# repo-updater
+# repo-ffwd
 
 > A production-ready Python CLI project template with best practices baked
-> in: a gh-style noun-verb CLI (`repo_updater`) on Click, a typed core library
+> in: a gh-style noun-verb CLI (`repo_ffwd`) on Click, a typed core library
 > (Pydantic result models are the output contract), layered TOML config in
 > platform-native locations, structured logging, and a fork-ready rename
 > system (the external `template-press` engine) so the whole stack can be rebranded in one command.
@@ -12,19 +12,19 @@ behind the `web` extra — every front-end renders the same result models.
 
 ## Docs
 
-- [README](https://github.com/smorinlabs/repo-updater/blob/main/README.md): overview, installation, and feature tour
-- [CLI conventions](https://github.com/smorinlabs/repo-updater/blob/main/EXAMPLECLI.md): the `repo_updater` command shapes, global flags, output contract, exit and error codes
-- [Documentation site](https://repo-updater.readthedocs.io/en/latest/): full rendered docs
-- [Agent guidelines](https://github.com/smorinlabs/repo-updater/blob/main/CLAUDE.md): commands and rules for AI coding agents working in this repo
-- [Changelog](https://github.com/smorinlabs/repo-updater/blob/main/CHANGELOG.md): release history (release-please managed)
+- [README](https://github.com/smorinlabs/repo-ffwd/blob/main/README.md): overview, installation, and feature tour
+- [CLI conventions](https://github.com/smorinlabs/repo-ffwd/blob/main/EXAMPLECLI.md): the `repo_ffwd` command shapes, global flags, output contract, exit and error codes
+- [Documentation site](https://repo-ffwd.readthedocs.io/en/latest/): full rendered docs
+- [Agent guidelines](https://github.com/smorinlabs/repo-ffwd/blob/main/CLAUDE.md): commands and rules for AI coding agents working in this repo
+- [Changelog](https://github.com/smorinlabs/repo-ffwd/blob/main/CHANGELOG.md): release history (release-please managed)
 
 ## Using the CLI
 
-- [Global flags and output contract](https://github.com/smorinlabs/repo-updater/blob/main/EXAMPLECLI.md): results on stdout, logs/errors on stderr; `-o text|json|markdown` everywhere; stable exit codes and `REPO_UPDATER###` error codes
-- [Configuration](https://github.com/smorinlabs/repo-updater/blob/main/EXAMPLECLI.md): layered TOML (`system → user → project`), `repo_updater config init|get|set|path`, secrets never stored in files
+- [Global flags and output contract](https://github.com/smorinlabs/repo-ffwd/blob/main/EXAMPLECLI.md): results on stdout, logs/errors on stderr; `-o text|json|markdown` everywhere; stable exit codes and `REPO_FFWD###` error codes
+- [Configuration](https://github.com/smorinlabs/repo-ffwd/blob/main/EXAMPLECLI.md): layered TOML (`system → user → project`), `repo_ffwd config init|get|set|path`, secrets never stored in files
 
 ## Optional
 
-- [Contributing](https://github.com/smorinlabs/repo-updater/blob/main/docs/source/contributing/index.md): contribution guide and optional contributor tracking
-- [Release process](https://github.com/smorinlabs/repo-updater/blob/main/docs/RELEASE.md): release-please + OIDC trusted publishing
-- [Project setup](https://github.com/smorinlabs/repo-updater/blob/main/docs/PROJECT_SETUP.md): development setup and optional repository and service configuration after rebranding
+- [Contributing](https://github.com/smorinlabs/repo-ffwd/blob/main/docs/source/contributing/index.md): contribution guide and optional contributor tracking
+- [Release process](https://github.com/smorinlabs/repo-ffwd/blob/main/docs/RELEASE.md): release-please + OIDC trusted publishing
+- [Project setup](https://github.com/smorinlabs/repo-ffwd/blob/main/docs/PROJECT_SETUP.md): development setup and optional repository and service configuration after rebranding

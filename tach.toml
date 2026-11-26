@@ -17,21 +17,21 @@ exclude = [
 ]
 
 [[modules]]
-path = "repo_updater"
+path = "repo_ffwd"
 depends_on = []
 
 [[modules]]
-path = "repo_updater.core"
-depends_on = ["repo_updater"]
+path = "repo_ffwd.core"
+depends_on = ["repo_ffwd"]
 
 [[modules]]
-path = "repo_updater.composition"
-depends_on = ["repo_updater.core"]
+path = "repo_ffwd.composition"
+depends_on = ["repo_ffwd.core"]
 
 [[modules]]
-path = "repo_updater.cli"
-depends_on = ["repo_updater.composition", "repo_updater.core", "repo_updater"]
+path = "repo_ffwd.cli"
+depends_on = ["repo_ffwd.composition", "repo_ffwd.core", "repo_ffwd"]
 
 [[modules]]
-path = "repo_updater.web"
-depends_on = ["repo_updater.core", "repo_updater.composition", "repo_updater"]
+path = "repo_ffwd.web"
+depends_on = ["repo_ffwd.core", "repo_ffwd.composition", "repo_ffwd"]

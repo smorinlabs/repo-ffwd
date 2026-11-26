@@ -4,7 +4,7 @@
   "packages": {
     ".": {
       "release-type": "python",
-      "package-name": "repo_updater",
+      "package-name": "repo_ffwd",
       "include-component-in-tag": false,
       "extra-files": [
         {

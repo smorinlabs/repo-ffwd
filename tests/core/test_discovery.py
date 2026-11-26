@@ -4,12 +4,12 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from repo_updater.core.adapters.git_cli import SubprocessGitAdapter
-from repo_updater.core.services.discovery import (
+from repo_ffwd.core.adapters.git_cli import SubprocessGitAdapter
+from repo_ffwd.core.services.discovery import (
     classify_remote_protocol,
     discover_repositories,
 )
-from repo_updater.core.settings import RootConfig
+from repo_ffwd.core.settings import RootConfig
 
 _GIT = shutil.which("git") or "git"
 

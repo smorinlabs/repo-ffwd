@@ -22,7 +22,7 @@
 ``pyproject.toml`` ``[project] version`` is the single source of truth (ADR-06).
 release-please bumps it together with ``.release-please-manifest.json`` and the
 editable root entry in ``uv.lock``. The CLI/docs derive their version from the
-installed package metadata (``repo_updater.__version__``). These tests
+installed package metadata (``repo_ffwd.__version__``). These tests
 fail if any copy or the atomic release updater drifts.
 """
 
@@ -30,7 +30,7 @@ import json
 import tomllib
 from pathlib import Path
 
-from repo_updater import __version__
+from repo_ffwd import __version__
 
 ROOT = Path(__file__).resolve().parents[2]
 UV_LOCK_UPDATER = {

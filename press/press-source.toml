@@ -2,10 +2,10 @@
 # of a rebrand). Authoritative: press validates it against the repo
 # and refuses to run on mismatch. Commit this file.
 [identity]
-package_name = "repo_updater"
-repo_name = "repo-updater"
-app_name = "repo_updater"
+package_name = "repo_ffwd"
+repo_name = "repo-ffwd"
+app_name = "repo_ffwd"
 author = "Steve Morin"
 email = "steve.morin@gmail.com"
 owner = "smorinlabs"
-display_name = "Repo Updater"
+display_name = "Repo Ffwd"
