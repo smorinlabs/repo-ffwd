@@ -1851,6 +1851,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "click" },
+    { name = "pathspec" },
     { name = "pydantic" },
     { name = "requests" },
     { name = "rich" },
@@ -1920,6 +1921,7 @@ requires-dist = [
     { name = "opentelemetry-exporter-otlp", marker = "extra == 'otel'", specifier = ">=1.27.0" },
     { name = "opentelemetry-instrumentation-fastapi", marker = "extra == 'otel'", specifier = ">=0.48b0" },
     { name = "opentelemetry-sdk", marker = "extra == 'otel'", specifier = ">=1.27.0" },
+    { name = "pathspec", specifier = ">=0.12.0" },
     { name = "prometheus-fastapi-instrumentator", marker = "extra == 'web'", specifier = ">=7.0.0" },
     { name = "pydantic", specifier = ">=2.0.0" },
     { name = "pydantic-settings", marker = "extra == 'web'", specifier = ">=2.4.0" },

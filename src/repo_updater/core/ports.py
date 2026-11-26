@@ -32,9 +32,10 @@ Methods are named for the domain verb and return domain models. ``None`` means
 user-facing error (HEX-12).
 """
 
+from pathlib import Path
 from typing import Protocol
 
-from repo_updater.core.models import Project
+from repo_updater.core.models import GitExecResult, Project
 
 
 class ProjectsRepository(Protocol):
@@ -47,3 +48,55 @@ class ProjectsRepository(Protocol):
     def get_project(self, project_id: str) -> Project | None: ...
 
     def resolve_workspace_gid(self, name: str) -> str | None: ...
+
+
+class GitPort(Protocol):
+    """Driven port for local and remote git operations."""
+
+    def git_version(self) -> str | None: ...
+
+    def is_bare(self, repo: Path) -> bool: ...
+
+    def git_common_dir(self, repo: Path) -> Path | None: ...
+
+    def list_remotes(self, repo: Path) -> list[str]: ...
+
+    def remote_url(self, repo: Path, remote: str) -> str | None: ...
+
+    def current_branch(self, repo: Path) -> str | None: ...
+
+    def worktree_branches(self, repo: Path) -> dict[str, list[Path]]: ...
+
+    def status_counts(self, repo: Path) -> tuple[int, int]: ...
+
+    def fetch(
+        self,
+        repo: Path,
+        remote: str,
+        *,
+        prune: bool,
+        timeout_seconds: int,
+        retries: int,
+    ) -> GitExecResult: ...
+
+    def detect_default_branch(self, repo: Path, remote: str) -> str | None: ...
+
+    def rev_parse(self, repo: Path, rev: str) -> str | None: ...
+
+    def ahead_behind(
+        self, repo: Path, left_ref: str, right_ref: str
+    ) -> tuple[int, int] | None: ...
+
+    def merge_ff_only(self, repo: Path, target_ref: str) -> GitExecResult: ...
+
+    def fetch_refspec(
+        self, repo: Path, remote: str, refspec: str, *, timeout_seconds: int
+    ) -> GitExecResult: ...
+
+    def stash_push(self, repo: Path, message: str) -> GitExecResult: ...
+
+    def stash_pop(self, repo: Path) -> GitExecResult: ...
+
+    def log_oneline(
+        self, repo: Path, rev_range: str, *, limit: int = 5
+    ) -> list[str]: ...

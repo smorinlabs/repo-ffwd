@@ -40,6 +40,7 @@ classifiers = [
 ]
 dependencies = [
   "click>=8.1.0",
+  "pathspec>=0.12.0",
   "pydantic>=2.0.0",   # structured result models (the JSON representation)
   "structlog>=24.1.0", # structured logging (human-friendly TTY / JSON otherwise)
   "tomli-w>=1.0.0",    # writing the TOML config file (`config set`)

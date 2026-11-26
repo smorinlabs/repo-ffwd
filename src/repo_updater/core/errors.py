@@ -55,6 +55,9 @@ ERROR_CODE_API = "REPO_UPDATER003"
 ERROR_CODE_INTERRUPT = "REPO_UPDATER004"
 ERROR_CODE_PROJECT_NOT_FOUND = "REPO_UPDATER005"
 ERROR_CODE_WORKSPACE_NOT_FOUND = "REPO_UPDATER006"
+ERROR_CODE_GIT = "REPO_UPDATER007"
+ERROR_CODE_TIMEOUT = "REPO_UPDATER008"
+ERROR_CODE_STASH_CONFLICT = "REPO_UPDATER009"
 
 
 class PyError(Exception):
@@ -113,3 +116,22 @@ class WorkspaceNotFoundError(APIError):
     """A workspace name could not be resolved to a gid (HEX-12)."""
 
     error_code = ERROR_CODE_WORKSPACE_NOT_FOUND
+
+
+class GitOperationError(PyError):
+    """A git subprocess operation failed."""
+
+    exit_code = ExitCode.CONFIG
+    error_code = ERROR_CODE_GIT
+
+
+class GitTimeoutError(GitOperationError):
+    """A git subprocess operation exceeded its configured timeout."""
+
+    error_code = ERROR_CODE_TIMEOUT
+
+
+class StashConflictError(GitOperationError):
+    """Restoring stashed local changes after a fast-forward produced a conflict."""
+
+    error_code = ERROR_CODE_STASH_CONFLICT

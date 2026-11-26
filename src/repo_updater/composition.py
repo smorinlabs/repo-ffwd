@@ -26,11 +26,13 @@ front-ends (``cli``, ``web``) import this module; nothing in ``core`` may
 free of the circular-import risk it would otherwise carry.
 """
 
+from repo_updater.core.adapters.git_cli import SubprocessGitAdapter
 from repo_updater.core.adapters.py_api import (
     DEFAULT_TIMEOUT,
     PyApiProjectsRepository,
 )
 from repo_updater.core.services.projects import ProjectsService
+from repo_updater.core.services.repos import RepoSyncService
 
 
 def build_projects_service(
@@ -38,3 +40,8 @@ def build_projects_service(
 ) -> ProjectsService:
     """Wire a :class:`ProjectsService` over the live Py API adapter."""
     return ProjectsService(PyApiProjectsRepository(token, timeout=timeout))
+
+
+def build_repo_sync_service() -> RepoSyncService:
+    """Wire a :class:`RepoSyncService` over the subprocess git adapter."""
+    return RepoSyncService(SubprocessGitAdapter())

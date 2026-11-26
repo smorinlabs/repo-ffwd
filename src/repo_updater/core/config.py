@@ -47,6 +47,7 @@ import tomli_w
 from repo_updater.core import paths
 from repo_updater.core.errors import ConfigError
 from repo_updater.core.settings import (
+    ScalarConfigValue,
     Settings,
     coerce_value,
     parse_key,
@@ -236,7 +237,9 @@ def write_config_data(config_path: Path, data: dict[str, Any]) -> None:
         raise
 
 
-def set_config_value(config_path: Path, dotted_key: str, raw_value: str) -> str:
+def set_config_value(
+    config_path: Path, dotted_key: str, raw_value: str
+) -> ScalarConfigValue:
     """Validate + write one ``section.key`` into the TOML file, preserving rest.
 
     Returns the coerced value. Raises :class:`ConfigError` for unknown keys,
