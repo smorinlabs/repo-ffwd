@@ -1,6 +1,6 @@
 {
   "name": "repo-ffwd",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "The repo-ffwd skill — safely fetch and fast-forward default branches across local Git repositories in parallel via the `repo-ffwd` CLI, with depth-bounded deduplicated discovery, per-repo timeouts, non-interactive guards, and conditional opt-in AutoStash.",
   "author": {
     "name": "Steve Morin"

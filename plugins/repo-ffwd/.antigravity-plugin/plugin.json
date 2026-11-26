@@ -2,7 +2,7 @@
   "$schema": "https://antigravity.google/schemas/v1/plugin.json",
   "name": "repo-ffwd",
   "displayName": "Repo Ffwd",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Safely fetch and fast-forward default branches across local Git repositories in parallel using the repo-ffwd CLI.",
   "suggestedPrompts": [
     "Update all my local repositories to the latest main",
