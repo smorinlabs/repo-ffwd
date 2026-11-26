@@ -15,8 +15,11 @@
 # ---
 # name: test_help_snapshot[repo_updater config get]
   '''
-  Usage: repo_updater config get [OPTIONS] {logging.file|logging.file_level|loggin
-                                 g.format|logging.level|output.color|output.format
+  Usage: repo_updater config get [OPTIONS] {defaults.depth|logging.file|logging.fi
+                                 le_level|logging.format|logging.level|output.colo
+                                 r|output.format|output.only_changed|sync.autostas
+                                 h|sync.concurrency|sync.include_worktrees|sync.pr
+                                 une|sync.remote|sync.retries|sync.timeout_seconds
                                  |token}
   
     Show a resolved config value and where it came from.
@@ -118,8 +121,11 @@
 # ---
 # name: test_help_snapshot[repo_updater config set]
   '''
-  Usage: repo_updater config set [OPTIONS] {logging.file|logging.file_level|loggin
-                                 g.format|logging.level|output.color|output.format
+  Usage: repo_updater config set [OPTIONS] {defaults.depth|logging.file|logging.fi
+                                 le_level|logging.format|logging.level|output.colo
+                                 r|output.format|output.only_changed|sync.autostas
+                                 h|sync.concurrency|sync.include_worktrees|sync.pr
+                                 une|sync.remote|sync.retries|sync.timeout_seconds
                                  } VALUE
   
     Write a non-secret config value to the TOML config file.
