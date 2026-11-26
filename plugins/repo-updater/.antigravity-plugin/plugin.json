@@ -1,0 +1,24 @@
+{
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+  "name": "repo-updater",
+  "displayName": "Repo Updater",
+  "version": "0.1.0",
+  "description": "Safely fetch and fast-forward default branches across local Git repositories in parallel using the repo-updater CLI.",
+  "suggestedPrompts": [
+    "Update all my local repositories to the latest main",
+    "Check which local repositories are behind or diverged",
+    "Dry-run a sync across my configured repositories"
+  ],
+  "author": {
+    "name": "Steve Morin"
+  },
+  "homepage": "https://github.com/smorinlabs/repo-updater",
+  "repository": "https://github.com/smorinlabs/repo-updater",
+  "keywords": [
+    "git",
+    "repositories",
+    "sync",
+    "updater",
+    "cli"
+  ]
+}
