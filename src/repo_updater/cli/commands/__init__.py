@@ -17,12 +17,12 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-"""Command groups — one module per noun (gh-style: ``repo_updater <noun> <verb>``)."""
+"""Command groups — one module per noun (gh-style: ``repo-updater <noun> <verb>``)."""
 
 from repo_updater.cli.commands.config import config_group
-from repo_updater.cli.commands.projects import projects_group
+from repo_updater.cli.commands.repo import repo_group
 
 #: Nouns registered on the root group (see ``main.py``).
-COMMAND_GROUPS = [projects_group, config_group]
+COMMAND_GROUPS = [repo_group, config_group]
 
-__all__ = ["COMMAND_GROUPS", "config_group", "projects_group"]
+__all__ = ["COMMAND_GROUPS", "config_group", "repo_group"]

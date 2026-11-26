@@ -17,12 +17,16 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-"""``repo_updater config`` — inspect and edit configuration (no network required).
+"""``repo-updater config`` — inspect and edit configuration (no network required).
 
 ``config set``/``get`` operate on **dotted keys** into the config tables, e.g.
-``output.color`` or ``logging.level``. Secrets are never stored in the config
-file — the token comes from ``--token`` or ``$REPO_UPDATER_TOKEN`` only.
+``sync.concurrency``, ``defaults.depth``, ``output.color``, or ``logging.level``.
+``config init`` runs a guided interactive setup for root directories and sync
+defaults, and ``config view`` displays the effective merged configuration.
 """
+
+from pathlib import Path
+from typing import Any
 
 import click
 
@@ -35,51 +39,65 @@ from repo_updater.core.config import (
     write_config_data,
 )
 from repo_updater.core.errors import ConfigError, ExitCode
-from repo_updater.core.models import ConfigPath, ConfigValue
+from repo_updater.core.models import (
+    ConfigPath,
+    ConfigValue,
+    ConfigView,
+    ConfigViewEntry,
+)
 from repo_updater.core.settings import (
+    DEFAULT_EXCLUDES,
     allowed_values,
     coerce_value,
     parse_key,
     writable_keys,
 )
 
-#: Keys `config get` can resolve: every settable key plus the read-only token.
+#: Keys `config get` can resolve: every settable scalar key plus the read-only token.
 _GETTABLE_KEYS = sorted([*writable_keys(), "token"])
 
+#: Keys ``config init`` walks through, in prompt order.
+_INIT_KEYS = [
+    "defaults.depth",
+    "sync.concurrency",
+    "sync.timeout_seconds",
+    "sync.autostash",
+    "output.format",
+    "output.color",
+    "logging.level",
+]
 
-@click.group(name="config", cls=SuggestingGroup)
-def config_group() -> None:
-    """Inspect and edit CLI configuration."""
+
+def _parse_roots_csv(raw: str) -> list[str]:
+    return [part.strip() for part in raw.split(",") if part.strip()]
 
 
-#: Keys ``config init`` walks through, in prompt order — the settings a
-#: fresh install most plausibly wants to pin down.
-_INIT_KEYS = ["output.format", "output.color", "logging.level"]
+def run_guided_config_init(
+    app: AppContext,
+    *,
+    dry_run: bool = False,
+    assume_yes: bool = False,
+    root_paths: tuple[str, ...] = (),
+) -> Path:
+    """Create or update the config file via guided prompts (or ``--yes`` defaults).
 
-
-@config_group.command(name="init")
-@mutation_options
-@global_options
-def config_init(app: AppContext, dry_run: bool, assume_yes: bool) -> None:
-    """Create or update the config file with guided prompts.
-
-    Asks (on stderr, so stdout stays pipe-safe) for the most common settings,
-    offering the currently resolved values as defaults, then writes them to
-    the TOML config file. Secrets are never written — the token stays in
-    --token / $REPO_UPDATER_TOKEN. Examples:
-
-        repo_updater config init
-        repo_updater config init --yes       # accept current values, no prompts
-        repo_updater config init --dry-run   # preview, write nothing
+    Shared by ``config init`` and the first-run setup prompt in ``repo`` commands.
+    Returns the target config path.
     """
     path = app.config.config_path or get_default_config_path()
     settings = app.config.settings
+
+    existing_roots = [r.path for r in settings.roots]
+    default_roots_str = ", ".join(root_paths or existing_roots or ["~/projects"])
+
     current: dict[str, str] = {}
     for dotted in _INIT_KEYS:
         section, name = parse_key(dotted)
-        current[dotted] = str(getattr(getattr(settings, section), name))
+        val = getattr(getattr(settings, section), name)
+        current[dotted] = str(val).lower() if isinstance(val, bool) else str(val)
 
     if assume_yes:
+        chosen_roots = list(root_paths) if root_paths else existing_roots
         chosen = current
     elif app.no_input:
         raise ConfigError(
@@ -87,6 +105,13 @@ def config_init(app: AppContext, dry_run: bool, assume_yes: bool) -> None:
             hint="pass --yes to write the current defaults non-interactively",
         )
     else:
+        raw_roots = click.prompt(
+            "Root directories to scan (comma-separated)",
+            default=default_roots_str,
+            type=str,
+            err=True,
+        )
+        chosen_roots = _parse_roots_csv(raw_roots)
         chosen = {}
         for dotted, default in current.items():
             section, name = parse_key(dotted)
@@ -99,10 +124,13 @@ def config_init(app: AppContext, dry_run: bool, assume_yes: bool) -> None:
             )
 
     if dry_run:
+        if chosen_roots:
+            app.renderer.message(
+                f"[dry-run] would set roots = {chosen_roots} in {path}"
+            )
         for dotted, value in chosen.items():
             app.renderer.message(f"[dry-run] would set {dotted} = {value} in {path}")
-        app.renderer.render(ConfigPath(path=str(path), exists=path.exists()))
-        return
+        return path
 
     data = read_config_for_write(path)  # ConfigError if existing+corrupt
     for dotted, value in chosen.items():
@@ -112,9 +140,106 @@ def config_init(app: AppContext, dry_run: bool, assume_yes: bool) -> None:
             table = {}
         table[name] = coerce_value(section, name, value)
         data[section] = table
+
+    defaults_table = data.get("defaults")
+    if not isinstance(defaults_table, dict):
+        defaults_table = {}
+    defaults_table.setdefault("exclude", list(DEFAULT_EXCLUDES))
+    data["defaults"] = defaults_table
+
+    if chosen_roots:
+        existing_by_path: dict[str, dict[str, Any]] = {}
+        raw_existing = data.get("roots")
+        if isinstance(raw_existing, list):
+            for entry in raw_existing:
+                if isinstance(entry, dict) and isinstance(entry.get("path"), str):
+                    existing_by_path[entry["path"]] = entry
+        data["roots"] = [
+            existing_by_path.get(root_path, {"path": root_path})
+            for root_path in chosen_roots
+        ]
+
     write_config_data(path, data)
     app.renderer.message(f"Wrote {path}")
-    app.renderer.render(ConfigPath(path=str(path), exists=True))
+    return path
+
+
+@click.group(name="config", cls=SuggestingGroup)
+def config_group() -> None:
+    """Inspect and edit CLI configuration."""
+
+
+@config_group.command(name="init")
+@click.option(
+    "--root",
+    "roots",
+    multiple=True,
+    help="Root directory to include in initial configuration (repeatable).",
+)
+@mutation_options
+@global_options
+def config_init(
+    app: AppContext, roots: tuple[str, ...], dry_run: bool, assume_yes: bool
+) -> None:
+    """Create or update the config file with guided prompts.
+
+    Asks (on stderr, so stdout stays pipe-safe) for root directories and the
+    most common sync settings, offering currently resolved values as defaults,
+    then writes them to the TOML config file. Examples:
+
+        repo-updater config init
+        repo-updater config init --root ~/projects --yes
+        repo-updater config init --dry-run
+    """
+    path = run_guided_config_init(
+        app, dry_run=dry_run, assume_yes=assume_yes, root_paths=roots
+    )
+    app.renderer.render(ConfigPath(path=str(path), exists=path.exists()))
+
+
+@config_group.command(name="view")
+@click.option(
+    "--show-origin",
+    is_flag=True,
+    help="Show whether each resolved setting came from config or defaults.",
+)
+@global_options
+def config_view(app: AppContext, show_origin: bool) -> None:
+    """Show the effective merged configuration.
+
+    Examples:
+        repo-updater config view
+        repo-updater config view --show-origin --json
+    """
+    settings = app.config.settings
+    entries: list[ConfigViewEntry] = []
+    for dotted in writable_keys():
+        section, name = parse_key(dotted)
+        table = getattr(settings, section)
+        val = getattr(table, name)
+        rendered = str(val).lower() if isinstance(val, bool) else str(val)
+        origin = "config" if name in table.model_fields_set else "default"
+        entries.append(ConfigViewEntry(key=dotted, value=rendered, origin=origin))
+    entries.append(
+        ConfigViewEntry(
+            key="defaults.exclude",
+            value=", ".join(settings.defaults.exclude) or "-",
+            origin=(
+                "config"
+                if "exclude" in settings.defaults.model_fields_set
+                else "default"
+            ),
+        )
+    )
+    roots_val = ", ".join(r.path for r in settings.roots) or "(none)"
+    entries.append(
+        ConfigViewEntry(
+            key="roots",
+            value=roots_val,
+            origin="config" if settings.roots else "default",
+        )
+    )
+    app.renderer.render(ConfigView(entries=entries, show_origin=show_origin))
 
 
 @config_group.command(name="path")
@@ -123,8 +248,8 @@ def config_path(app: AppContext) -> None:
     """Show the config file path and whether it exists.
 
     Examples:
-        repo_updater config path
-        repo_updater config path --json
+        repo-updater config path
+        repo-updater config path --json
     """
     path = app.config.config_path or get_default_config_path()
     app.renderer.render(ConfigPath(path=str(path), exists=path.exists()))
@@ -136,10 +261,9 @@ def config_path(app: AppContext) -> None:
 def config_get(app: AppContext, key: str) -> None:
     """Show a resolved config value and where it came from.
 
-    The token is masked and resolves from flag/env only. Examples:
-        repo_updater config get output.color
-        repo_updater config get logging.level --json
-        repo_updater config get token
+    Examples:
+        repo-updater config get sync.concurrency
+        repo-updater config get output.color --json
     """
     cfg = app.config
     if key == "token":
@@ -149,11 +273,9 @@ def config_get(app: AppContext, key: str) -> None:
     section, name = parse_key(key)
     table = getattr(cfg.settings, section)
     resolved = getattr(table, name)
-    # model_fields_set tracks keys a config layer actually supplied — anything
-    # else is the schema default, and claiming "config" for it sends users
-    # hunting for a file that doesn't set it.
+    rendered = str(resolved).lower() if isinstance(resolved, bool) else str(resolved)
     source = "config" if name in table.model_fields_set else "default"
-    app.renderer.render(ConfigValue(key=key, value=str(resolved), source=source))
+    app.renderer.render(ConfigValue(key=key, value=rendered, source=source))
 
 
 @config_group.command(name="set")
@@ -167,24 +289,20 @@ def config_set(
     """Write a non-secret config value to the TOML config file.
 
     KEY is a dotted path into the config tables. Examples:
-        repo_updater config set output.color always
-        repo_updater config set logging.level info
-        repo_updater config set logging.file_level debug --yes
-
-    Secrets are never stored here — supply the token via --token or
-    $REPO_UPDATER_TOKEN. Prompts before overwriting an existing value unless --yes.
+        repo-updater config set sync.concurrency 8
+        repo-updater config set sync.autostash true
+        repo-updater config set output.color always --yes
     """
     path = app.config.config_path or get_default_config_path()
     section, name = parse_key(key)
     coerced = coerce_value(section, name, value)  # validates up front
+    rendered = str(coerced).lower() if isinstance(coerced, bool) else str(coerced)
 
     if dry_run:
-        app.renderer.message(f"[dry-run] would set {key} = {coerced} in {path}")
-        app.renderer.render(ConfigValue(key=key, value=str(coerced), source="dry-run"))
+        app.renderer.message(f"[dry-run] would set {key} = {rendered} in {path}")
+        app.renderer.render(ConfigValue(key=key, value=rendered, source="dry-run"))
         return
 
-    # One read serves both the overwrite check and the write — the value
-    # shown in the prompt is the value the write preserves around.
     data = read_config_for_write(path)  # ConfigError if existing+corrupt
     table = data.get(section)
     if not isinstance(table, dict):
@@ -205,8 +323,8 @@ def config_set(
     table[name] = coerced
     data[section] = table
     write_config_data(path, data)
-    app.renderer.message(f"Set {key} = {coerced} in {path}")
-    app.renderer.render(ConfigValue(key=key, value=str(coerced), source="file"))
+    app.renderer.message(f"Set {key} = {rendered} in {path}")
+    app.renderer.render(ConfigValue(key=key, value=rendered, source="file"))
 
 
 def _mask(secret: str) -> str:

@@ -21,7 +21,7 @@
 name = "repo_updater"
 # ITM-070 — static version (ADR-06 cutover). release-please bumps this.
 version = "0.1.0"
-description = "CLI tools for interacting with Py, including project search functionality"
+description = "Safe, parallel, config-driven updater for local Git repositories"
 readme = "README.md"
 requires-python = ">=3.13"
 license = "MIT" # PEP 639 license expression (ITM-070, round-19).
@@ -116,7 +116,8 @@ docs = [
 
 
 [project.scripts]
-# Noun-verb CLI (gh-style): repo_updater <noun> <verb>
+# Noun-verb CLI (gh-style): repo-updater <noun> <verb>
+repo-updater = "repo_updater.cli.main:cli"
 repo_updater = "repo_updater.cli.main:cli"
 
 # ITM-072 — package metadata URLs (round 19).

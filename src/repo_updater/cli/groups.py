@@ -17,15 +17,16 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-"""A click ``Group`` that suggests near-miss command names (git/gh-style).
+"""A click ``Group`` that supports hidden aliases and near-miss suggestions.
 
-Used by the root group and every noun group, so ``repo_updater porjects list`` and
-``repo_updater projects lst`` both answer with "Did you mean …?" instead of a bare
-"No such command". Pure stdlib (``difflib``) — no extra dependency.
+Used by the root group and every noun group, so ``repo-updater rpo sync`` and
+``repo-updater repo snc`` answer with "Did you mean …?" instead of a bare
+"No such command", while undocumented plural aliases (e.g. ``repos`` -> ``repo``)
+resolve transparently without cluttering ``--help``.
 """
 
 import difflib
-from typing import override
+from typing import Any, override
 
 import click
 
@@ -35,7 +36,21 @@ _CUTOFF = 0.6
 
 
 class SuggestingGroup(click.Group):
-    """``click.Group`` whose unknown-command error proposes close matches."""
+    """``click.Group`` with undocumented command aliases and close-match suggestions."""
+
+    def __init__(
+        self,
+        *args: Any,  # noqa: ANN401 — forwarded verbatim to click.Group
+        aliases: dict[str, str] | None = None,
+        **kwargs: Any,  # noqa: ANN401 — forwarded verbatim to click.Group
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self._aliases: dict[str, str] = dict(aliases or {})
+
+    @override
+    def get_command(self, ctx: click.Context, cmd_name: str) -> click.Command | None:
+        canonical = self._aliases.get(cmd_name, cmd_name)
+        return super().get_command(ctx, canonical)
 
     @override
     def resolve_command(
@@ -44,6 +59,8 @@ class SuggestingGroup(click.Group):
         try:
             return super().resolve_command(ctx, args)
         except click.UsageError as exc:
+            if not args:
+                raise
             name = click.utils.make_str(args[0])
             matches = difflib.get_close_matches(
                 name, self.list_commands(ctx), n=3, cutoff=_CUTOFF

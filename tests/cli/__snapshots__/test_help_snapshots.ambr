@@ -1,7 +1,7 @@
 # serializer version: 1
 # name: test_help_snapshot[repo_updater completion]
   '''
-  Usage: repo_updater completion [OPTIONS] {bash|zsh|fish}
+  Usage: repo-updater completion [OPTIONS] {bash|zsh|fish}
   
     Print a shell completion script.
   
@@ -15,7 +15,7 @@
 # ---
 # name: test_help_snapshot[repo_updater config get]
   '''
-  Usage: repo_updater config get [OPTIONS] {defaults.depth|logging.file|logging.fi
+  Usage: repo-updater config get [OPTIONS] {defaults.depth|logging.file|logging.fi
                                  le_level|logging.format|logging.level|output.colo
                                  r|output.format|output.only_changed|sync.autostas
                                  h|sync.concurrency|sync.include_worktrees|sync.pr
@@ -24,9 +24,8 @@
   
     Show a resolved config value and where it came from.
   
-    The token is masked and resolves from flag/env only. Examples:
-    repo_updater config get output.color     repo_updater config get logging.level
-    --json     repo_updater config get token
+    Examples:     repo-updater config get sync.concurrency     repo-updater config
+    get output.color --json
   
   Options:
     -o, --output [text|json|markdown]
@@ -52,20 +51,20 @@
 # ---
 # name: test_help_snapshot[repo_updater config init]
   '''
-  Usage: repo_updater config init [OPTIONS]
+  Usage: repo-updater config init [OPTIONS]
   
     Create or update the config file with guided prompts.
   
-    Asks (on stderr, so stdout stays pipe-safe) for the most common settings,
-    offering the currently resolved values as defaults, then writes them to the
-    TOML config file. Secrets are never written — the token stays in --token /
-    $REPO_UPDATER_TOKEN. Examples:
+    Asks (on stderr, so stdout stays pipe-safe) for root directories and the most
+    common sync settings, offering currently resolved values as defaults, then
+    writes them to the TOML config file. Examples:
   
-        repo_updater config init     repo_updater config init --yes       # accept
-        current values, no prompts     repo_updater config init --dry-run   #
-        preview, write nothing
+        repo-updater config init     repo-updater config init --root ~/projects
+        --yes     repo-updater config init --dry-run
   
   Options:
+    --root TEXT                     Root directory to include in initial
+                                    configuration (repeatable).
     --dry-run                       Show what would change; write nothing.
     -y, --yes                       Skip confirmation prompts (for scripts/CI).
     -o, --output [text|json|markdown]
@@ -91,11 +90,11 @@
 # ---
 # name: test_help_snapshot[repo_updater config path]
   '''
-  Usage: repo_updater config path [OPTIONS]
+  Usage: repo-updater config path [OPTIONS]
   
     Show the config file path and whether it exists.
   
-    Examples:     repo_updater config path     repo_updater config path --json
+    Examples:     repo-updater config path     repo-updater config path --json
   
   Options:
     -o, --output [text|json|markdown]
@@ -121,7 +120,7 @@
 # ---
 # name: test_help_snapshot[repo_updater config set]
   '''
-  Usage: repo_updater config set [OPTIONS] {defaults.depth|logging.file|logging.fi
+  Usage: repo-updater config set [OPTIONS] {defaults.depth|logging.file|logging.fi
                                  le_level|logging.format|logging.level|output.colo
                                  r|output.format|output.only_changed|sync.autostas
                                  h|sync.concurrency|sync.include_worktrees|sync.pr
@@ -130,13 +129,9 @@
   
     Write a non-secret config value to the TOML config file.
   
-    KEY is a dotted path into the config tables. Examples:     repo_updater config
-    set output.color always     repo_updater config set logging.level info
-    repo_updater config set logging.file_level debug --yes
-  
-    Secrets are never stored here — supply the token via --token or
-    $REPO_UPDATER_TOKEN. Prompts before overwriting an existing value unless
-    --yes.
+    KEY is a dotted path into the config tables. Examples:     repo-updater config
+    set sync.concurrency 8     repo-updater config set sync.autostash true
+    repo-updater config set output.color always --yes
   
   Options:
     --dry-run                       Show what would change; write nothing.
@@ -162,9 +157,42 @@
   
   '''
 # ---
+# name: test_help_snapshot[repo_updater config view]
+  '''
+  Usage: repo-updater config view [OPTIONS]
+  
+    Show the effective merged configuration.
+  
+    Examples:     repo-updater config view     repo-updater config view --show-
+    origin --json
+  
+  Options:
+    --show-origin                   Show whether each resolved setting came from
+                                    config or defaults.
+    -o, --output [text|json|markdown]
+                                    Output format. [default: text]
+    --json                          Shorthand for --output json.
+    --output-file FILE              Write results to a file instead of stdout
+                                    (format set by --output).
+    -v, --verbose                   Increase log verbosity (-vv for debug).
+    -q, --quiet                     Suppress non-essential stderr output.
+    --log-level [debug|info|warning|error|critical]
+                                    Explicit console log level (overrides -v/-q).
+    --log-file TEXT                 Enable rotating file logging (PATH optional;
+                                    default: XDG state).
+    --no-color                      Disable colored output.
+    --config FILE                   Path to a TOML config file (overrides layered
+                                    discovery).
+    --token TEXT                    Py Personal Access Token (overrides
+                                    $REPO_UPDATER_TOKEN). Never stored.
+    --no-input                      Never prompt; fail instead (for scripts/CI).
+    -h, --help                      Show this message and exit.
+  
+  '''
+# ---
 # name: test_help_snapshot[repo_updater config]
   '''
-  Usage: repo_updater config [OPTIONS] COMMAND [ARGS]...
+  Usage: repo-updater config [OPTIONS] COMMAND [ARGS]...
   
     Inspect and edit CLI configuration.
   
@@ -176,12 +204,13 @@
     init  Create or update the config file with guided prompts.
     path  Show the config file path and whether it exists.
     set   Write a non-secret config value to the TOML config file.
+    view  Show the effective merged configuration.
   
   '''
 # ---
 # name: test_help_snapshot[repo_updater doctor]
   '''
-  Usage: repo_updater doctor [OPTIONS]
+  Usage: repo-updater doctor [OPTIONS]
   
     Diagnose configuration and environment.
   
@@ -214,16 +243,25 @@
   
   '''
 # ---
-# name: test_help_snapshot[repo_updater projects get]
+# name: test_help_snapshot[repo_updater repo list]
   '''
-  Usage: repo_updater projects get [OPTIONS] PROJECT_ID
+  Usage: repo-updater repo list [OPTIONS]
   
-    Fetch a single project by its ID.
+    List discovered Git repositories without making network calls.
   
-    Examples:     repo_updater projects get 12345     repo_updater projects get
-    12345 --json
+    Examples:     repo-updater repo list     repo-updater repo list --root
+    ~/projects --max-depth 2 --json
   
   Options:
+    --root TEXT                     Directory root to scan (repeatable; overrides
+                                    configured roots).
+    --max-depth INTEGER RANGE       Maximum directory traversal depth below each
+                                    root.  [0<=x<=10]
+    --tag TEXT                      Limit listing to configured roots carrying at
+                                    least one matching tag.
+    --include-worktrees / --no-include-worktrees
+                                    Include linked Git worktrees (skipped by
+                                    default).
     -o, --output [text|json|markdown]
                                     Output format. [default: text]
     --json                          Shorthand for --output json.
@@ -245,19 +283,31 @@
   
   '''
 # ---
-# name: test_help_snapshot[repo_updater projects list]
+# name: test_help_snapshot[repo_updater repo status]
   '''
-  Usage: repo_updater projects list [OPTIONS]
+  Usage: repo-updater repo status [OPTIONS]
   
-    List projects, optionally filtered by workspace.
+    Show read-only branch, dirty, and ahead/behind status across repositories.
   
-    Examples:     repo_updater projects list     repo_updater projects list
-    --workspace "My Workspace" --json     repo_updater projects list -o markdown
+    Examples:     repo-updater repo status     repo-updater repo status --fetch
+    --json
   
   Options:
-    --workspace TEXT                Filter projects by workspace name.
-    --limit INTEGER RANGE           Maximum number of projects to retrieve.
-                                    [default: 200; x>=1]
+    --root TEXT                     Directory root to scan (repeatable; overrides
+                                    configured roots).
+    --max-depth INTEGER RANGE       Maximum directory traversal depth below each
+                                    root.  [0<=x<=10]
+    --tag TEXT                      Limit status to configured roots carrying at
+                                    least one matching tag.
+    --fetch / --no-fetch            Fetch remotes before computing ahead/behind
+                                    counts (offline by default).
+    --concurrency INTEGER RANGE     Maximum number of parallel workers.
+                                    [1<=x<=64]
+    --timeout INTEGER RANGE         Per-repository git fetch timeout in seconds
+                                    (when --fetch is set).  [1<=x<=3600]
+    --include-worktrees / --no-include-worktrees
+                                    Include linked Git worktrees (skipped by
+                                    default).
     -o, --output [text|json|markdown]
                                     Output format. [default: text]
     --json                          Shorthand for --output json.
@@ -279,28 +329,86 @@
   
   '''
 # ---
-# name: test_help_snapshot[repo_updater projects]
+# name: test_help_snapshot[repo_updater repo sync]
   '''
-  Usage: repo_updater projects [OPTIONS] COMMAND [ARGS]...
+  Usage: repo-updater repo sync [OPTIONS]
   
-    List and inspect Py projects.
+    Fetch and fast-forward default branches across repositories in parallel.
+  
+    Examples:     repo-updater repo sync     repo-updater repo sync --root
+    ~/projects --concurrency 8     repo-updater repo sync --dry-run --all
+    repo-updater repo sync --autostash --json --no-input
+  
+  Options:
+    --root TEXT                     Directory root to scan (repeatable; overrides
+                                    configured roots).
+    --max-depth INTEGER RANGE       Maximum directory traversal depth below each
+                                    root.  [0<=x<=10]
+    --concurrency INTEGER RANGE     Maximum number of repositories to fetch in
+                                    parallel.  [1<=x<=64]
+    --timeout INTEGER RANGE         Per-repository git fetch timeout in seconds.
+                                    [1<=x<=3600]
+    --retries INTEGER RANGE         Retry attempts for transient network errors.
+                                    [0<=x<=5]
+    --autostash / --no-autostash    Stash and restore local changes only when
+                                    behind and blocked by dirty files.
+    --prune / --no-prune            Prune deleted remote-tracking branches during
+                                    fetch.
+    --dry-run                       Fetch and compute the update plan without
+                                    modifying any branch or tree.
+    --only-changed / --all          Hide already up-to-date repositories in text
+                                    output (use --all to show every repo).
+    --tag TEXT                      Limit sync to configured roots carrying at
+                                    least one matching tag.
+    --include-worktrees / --no-include-worktrees
+                                    Include linked Git worktrees (skipped by
+                                    default).
+    --fail-fast                     Stop scheduling remaining repositories after
+                                    the first failure.
+    -o, --output [text|json|markdown]
+                                    Output format. [default: text]
+    --json                          Shorthand for --output json.
+    --output-file FILE              Write results to a file instead of stdout
+                                    (format set by --output).
+    -v, --verbose                   Increase log verbosity (-vv for debug).
+    -q, --quiet                     Suppress non-essential stderr output.
+    --log-level [debug|info|warning|error|critical]
+                                    Explicit console log level (overrides -v/-q).
+    --log-file TEXT                 Enable rotating file logging (PATH optional;
+                                    default: XDG state).
+    --no-color                      Disable colored output.
+    --config FILE                   Path to a TOML config file (overrides layered
+                                    discovery).
+    --token TEXT                    Py Personal Access Token (overrides
+                                    $REPO_UPDATER_TOKEN). Never stored.
+    --no-input                      Never prompt; fail instead (for scripts/CI).
+    -h, --help                      Show this message and exit.
+  
+  '''
+# ---
+# name: test_help_snapshot[repo_updater repo]
+  '''
+  Usage: repo-updater repo [OPTIONS] COMMAND [ARGS]...
+  
+    Discover, inspect, and sync local Git repositories.
   
   Options:
     -h, --help  Show this message and exit.
   
   Commands:
-    get   Fetch a single project by its ID.
-    list  List projects, optionally filtered by workspace.
+    list    List discovered Git repositories without making network calls.
+    status  Show read-only branch, dirty, and ahead/behind status across...
+    sync    Fetch and fast-forward default branches across repositories in...
   
   '''
 # ---
 # name: test_help_snapshot[repo_updater]
   '''
-  Usage: repo_updater [OPTIONS] COMMAND [ARGS]...
+  Usage: repo-updater [OPTIONS] [COMMAND] [ARGS]...
   
-    repo_updater — a gh-style CLI for Py.
+    repo-updater — safe, parallel, config-driven Git repository updater.
   
-    Commands follow a noun-verb shape, e.g. `repo_updater projects list`. Every
+    Commands follow a noun-verb shape, e.g. `repo-updater repo sync`. Every
     command supports -o/--output {text,json,markdown}, --json, -v/--verbose, --no-
     color, and --config. Results go to stdout; logs and errors go to stderr.
   
@@ -312,7 +420,7 @@
     completion  Print a shell completion script.
     config      Inspect and edit CLI configuration.
     doctor      Diagnose configuration and environment.
-    projects    List and inspect Py projects.
+    repo        Discover, inspect, and sync local Git repositories.
   
   '''
 # ---

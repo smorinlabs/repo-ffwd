@@ -17,7 +17,7 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-"""Environment/setup diagnostics for `repo_updater doctor`.
+"""Environment/setup diagnostics for `repo-updater doctor`.
 
 Pure logic: takes a resolved :class:`Config` and inspects the runtime, never
 printing. The CLI renders the returned :class:`DoctorReport` (or, for
@@ -26,22 +26,43 @@ printing. The CLI renders the returned :class:`DoctorReport` (or, for
 
 import os
 import platform
+import shutil
+import subprocess  # nosec B404 — read-only git --version check
 import sys
+from pathlib import Path
 
 from repo_updater import __version__
 from repo_updater.core import paths
-from repo_updater.core.config import TOKEN_ENV_VAR, Config
+from repo_updater.core.config import Config
 from repo_updater.core.models import (
     DiagnosticsBundle,
     DoctorCheck,
     DoctorReport,
 )
 
-MIN_PYTHON = (3, 12)
+MIN_PYTHON = (3, 13)
 
 #: Env-var name fragments whose values are redacted from bundles. Broad on
 #: purpose: a bundle is built to be pasted into a public issue.
 _SENSITIVE_ENV_MARKERS = ("TOKEN", "SECRET", "KEY", "PASSWORD", "CRED", "PRIVATE")
+
+
+def _detect_git_version() -> str | None:
+    git_bin = shutil.which("git")
+    if not git_bin:
+        return None
+    try:
+        proc = subprocess.run(  # noqa: S603 # nosec B603
+            [git_bin, "--version"],
+            stdin=subprocess.DEVNULL,
+            capture_output=True,
+            text=True,
+            timeout=5,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    return proc.stdout.strip() if proc.returncode == 0 and proc.stdout.strip() else None
 
 
 def run_diagnostics(config: Config) -> DoctorReport:
@@ -61,6 +82,15 @@ def run_diagnostics(config: Config) -> DoctorReport:
 
     checks.append(DoctorCheck(name="platform", status="ok", detail=platform.platform()))
 
+    git_ver = _detect_git_version()
+    checks.append(
+        DoctorCheck(
+            name="git",
+            status="ok" if git_ver else "error",
+            detail=git_ver or "git executable not found on PATH",
+        )
+    )
+
     cfg_path = config.config_path or paths.config_file()
     found = cfg_path.exists()
     checks.append(
@@ -71,23 +101,36 @@ def run_diagnostics(config: Config) -> DoctorReport:
         )
     )
 
-    if config.token:
+    roots = config.settings.roots
+    if not roots:
         checks.append(
             DoctorCheck(
-                name="token", status="ok", detail=f"present (source: {config.source})"
+                name="roots",
+                status="warn",
+                detail="no roots configured (run 'repo-updater config init')",
             )
         )
     else:
-        checks.append(
-            DoctorCheck(
-                name="token",
-                status="warn",
-                detail=(
-                    f"not set (supply via --token or ${TOKEN_ENV_VAR}; "
-                    "never stored in config)"
-                ),
+        missing = [r.path for r in roots if not Path(r.path).expanduser().is_dir()]
+        if missing:
+            checks.append(
+                DoctorCheck(
+                    name="roots",
+                    status="warn",
+                    detail=(
+                        f"{len(roots)} configured; missing directories: "
+                        + ", ".join(missing)
+                    ),
+                )
             )
-        )
+        else:
+            checks.append(
+                DoctorCheck(
+                    name="roots",
+                    status="ok",
+                    detail=f"{len(roots)} configured, all accessible",
+                )
+            )
 
     return DoctorReport(checks=checks)
 

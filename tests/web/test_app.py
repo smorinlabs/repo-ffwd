@@ -69,10 +69,10 @@ def test_healthz_reports_version(client):
 
 def test_readyz_returns_doctor_report(client):
     response = client.get("/readyz")
-    # Missing token/config are warnings, not errors, so readiness holds.
+    # Missing roots/config are warnings, not errors, so readiness holds.
     assert response.status_code == 200
     checks = {c["name"] for c in response.json()["checks"]}
-    assert {"python", "platform", "token"} <= checks
+    assert {"python", "platform", "git", "roots"} <= checks
 
 
 def test_metrics_exposed_by_default(client):
