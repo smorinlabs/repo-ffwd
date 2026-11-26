@@ -1,33 +1,33 @@
-# CLI Interface Specification — `repo-updater`
+# CLI Interface Specification — `repo-ffwd`
 
 | | |
 |---|---|
-| **Binary** | `repo-updater` (with `repo_updater` alias) |
+| **Binary** | `repo-ffwd` (with `repo_ffwd` alias) |
 | **Standard** | CLI Design Standard **v1.4.15** |
 | **Profile** | Standard (noun-verb, §1) |
 | **Tier** | Publishable |
 | **Status** | Active design contract |
 
-This document is the normative CLI interface contract for `repo-updater`. Rule citations (`R#.#`, `Decision #`) refer to the CLI Design Standard v1.4.15.
+This document is the normative CLI interface contract for `repo-ffwd`. Rule citations (`R#.#`, `Decision #`) refer to the CLI Design Standard v1.4.15.
 
 ---
 
 ## 1. Command Tree
 
-Depth ≤ 2 subcommand path elements (`repo-updater <noun> <verb>`, Decision #11). Singular noun `repo` is canonical; plural `repos` is accepted as an undocumented alias (Decision #5). Bare `repo-updater` prints help on stdout and exits `0`; an incomplete group (`repo-updater repo`) prints usage on stderr and exits `2`; unknown commands suggest close matches (R7.9, Decision #34).
+Depth ≤ 2 subcommand path elements (`repo-ffwd <noun> <verb>`, Decision #11). Singular noun `repo` is canonical; plural `repos` is accepted as an undocumented alias (Decision #5). Bare `repo-ffwd` prints help on stdout and exits `0`; an incomplete group (`repo-ffwd repo`) prints usage on stderr and exits `2`; unknown commands suggest close matches (R7.9, Decision #34).
 
 | Command | Verb class | Purpose |
 |---|---|---|
-| `repo-updater repo sync` | Domain verb (Decision #23) | Fetch and fast-forward default branches across discovered repositories in parallel |
-| `repo-updater repo list` | Core verb (R2.1) | Discover and list repositories offline (no network), showing skipped worktrees and remote protocol |
-| `repo-updater repo status` | Domain verb (Decision #23) | Report branch, clean/dirty, untracked, and ahead/behind sync state (offline by default; `--fetch` opt-in) |
-| `repo-updater config init` | Setup verb (Decision #53) | Guided interactive setup writing the XDG TOML config file |
-| `repo-updater config view` | Core verb (R2.1, Decision #40) | Display effective merged configuration (supports `--show-origin`) |
-| `repo-updater config path` | Inspect verb | Print resolved config file path and existence |
-| `repo-updater config get <key>` | Config read | Print one resolved dotted key and its origin |
-| `repo-updater config set <key> <value>` | Config write (Decision #20) | Validate and write one dotted key to the user/target config file |
-| `repo-updater doctor` | Diagnostics (R9.10) | Verify `git`, config, root paths, credential helper, and SSH-remote readiness (`--bundle` for redacted bug reports) |
-| `repo-updater completion <shell>` | Ecosystem | Emit shell completion script for `bash`, `zsh`, or `fish` |
+| `repo-ffwd repo sync` | Domain verb (Decision #23) | Fetch and fast-forward default branches across discovered repositories in parallel |
+| `repo-ffwd repo list` | Core verb (R2.1) | Discover and list repositories offline (no network), showing skipped worktrees and remote protocol |
+| `repo-ffwd repo status` | Domain verb (Decision #23) | Report branch, clean/dirty, untracked, and ahead/behind sync state (offline by default; `--fetch` opt-in) |
+| `repo-ffwd config init` | Setup verb (Decision #53) | Guided interactive setup writing the XDG TOML config file |
+| `repo-ffwd config view` | Core verb (R2.1, Decision #40) | Display effective merged configuration (supports `--show-origin`) |
+| `repo-ffwd config path` | Inspect verb | Print resolved config file path and existence |
+| `repo-ffwd config get <key>` | Config read | Print one resolved dotted key and its origin |
+| `repo-ffwd config set <key> <value>` | Config write (Decision #20) | Validate and write one dotted key to the user/target config file |
+| `repo-ffwd doctor` | Diagnostics (R9.10) | Verify `git`, config, root paths, credential helper, and SSH-remote readiness (`--bundle` for redacted bug reports) |
+| `repo-ffwd completion <shell>` | Ecosystem | Emit shell completion script for `bash`, `zsh`, or `fish` |
 
 ---
 
@@ -37,24 +37,24 @@ Available on every command (R4.1–R4.4). Exact flag matching is enforced — pr
 
 | Long flag | Short | Type | Default | Env var | Notes |
 |---|---|---|---|---|---|
-| `--output` | `-o` | `text\|json\|markdown` | `text` | `REPO_UPDATER_OUTPUT` | Output format (Decision #4) |
+| `--output` | `-o` | `text\|json\|markdown` | `text` | `REPO_FFWD_OUTPUT` | Output format (Decision #4) |
 | `--json` | — | bool | `false` | — | Shorthand for `--output json` |
 | `--output-file` | — | path | — | — | Write results to path instead of stdout; long-only (Decision #25) |
 | `--verbose` | `-v` | count | `0` | — | Repeatable (`-v` info, `-vv` debug) (Decision #3, #15) |
 | `--quiet` | `-q` | bool | `false` | — | Suppress non-essential stderr output; wins ties over `-v` (Decision #15) |
-| `--log-level` | — | level | `warning` | `REPO_UPDATER_LOG_LEVEL` | Explicit console log level |
-| `--log-file` | — | optional path | off | `REPO_UPDATER_LOG_FILE` | Rotating file log (default: XDG state dir) |
+| `--log-level` | — | level | `warning` | `REPO_FFWD_LOG_LEVEL` | Explicit console log level |
+| `--log-file` | — | optional path | off | `REPO_FFWD_LOG_FILE` | Rotating file log (default: XDG state dir) |
 | `--no-color` | — | bool | `false` | `NO_COLOR` | Disable ANSI colors |
-| `--config` | — | path | discovered | `REPO_UPDATER_CONFIG` | Explicit TOML config file (overrides layered discovery) |
+| `--config` | — | path | discovered | `REPO_FFWD_CONFIG` | Explicit TOML config file (overrides layered discovery) |
 | `--no-input` | — | bool | `false` | — | Never prompt; fail cleanly instead (R8.5) |
-| `--version` | `-V` | bool | — | — | Root option: prints `repo-updater <semver>` + Python/platform, exits `0` (Decision #3, #35) |
+| `--version` | `-V` | bool | — | — | Root option: prints `repo-ffwd <semver>` + Python/platform, exits `0` (Decision #3, #35) |
 | `--help` | `-h` | bool | — | — | Help on stdout, exits `0` (R4.1) |
 
 ---
 
 ## 3. Command Flags
 
-### `repo-updater repo sync`
+### `repo-ffwd repo sync`
 
 | Long flag | Short | Type | Default | Repeatable | Negation | Notes |
 |---|---|---|---|---|---|---|
@@ -71,7 +71,7 @@ Available on every command (R4.1–R4.4). Exact flag matching is enforced — pr
 | `--include-worktrees` | — | bool | config (`false`) | No | `--no-include-worktrees` | Include linked git worktrees (skipped by default) |
 | `--fail-fast` | — | bool | `false` | No | — | Stop scheduling new repos after the first error (Decision #37) |
 
-### `repo-updater repo list`
+### `repo-ffwd repo list`
 
 | Long flag | Type | Default | Repeatable | Notes |
 |---|---|---|---|---|
@@ -80,7 +80,7 @@ Available on every command (R4.1–R4.4). Exact flag matching is enforced — pr
 | `--tag` | string | all | Yes | Filter roots by tag |
 | `--include-worktrees` | bool | config (`false`) | No | Show linked worktrees alongside main clones |
 
-### `repo-updater repo status`
+### `repo-ffwd repo status`
 
 | Long flag | Type | Default | Repeatable | Negation | Notes |
 |---|---|---|---|---|---|
@@ -92,7 +92,7 @@ Available on every command (R4.1–R4.4). Exact flag matching is enforced — pr
 | `--timeout` | int (≥ 1) | config (`60`) | No | — | Per-repo fetch timeout when `--fetch` is set |
 | `--include-worktrees` | bool | config (`false`) | No | — | Include linked worktrees |
 
-### `repo-updater config`
+### `repo-ffwd config`
 
 - `config init`: `--dry-run`, `-y/--yes` (accept defaults without prompting).
 - `config view`: `--show-origin` (annotate each resolved setting with its source layer).
@@ -100,7 +100,7 @@ Available on every command (R4.1–R4.4). Exact flag matching is enforced — pr
 - `config get <key>`: global options only.
 - `config set <key> <value>`: `--dry-run`, `-y/--yes`.
 
-### `repo-updater doctor`
+### `repo-ffwd doctor`
 
 - `--bundle`: emit a redacted JSON/text diagnostic snapshot safe for public issues.
 
@@ -108,17 +108,17 @@ Available on every command (R4.1–R4.4). Exact flag matching is enforced — pr
 
 ## 4. Configuration & Environment Precedence (§5)
 
-- **Canonical filename (Decision #47):** `repo-updater_config.toml` (also honoring `repo_updater_config.toml` during migration).
+- **Canonical filename (Decision #47):** `repo-ffwd_config.toml` (also honoring `repo_ffwd_config.toml` during migration).
 - **Layered discovery (lowest → highest):**
   1. Built-in defaults
-  2. System (`$XDG_CONFIG_DIRS/repo-updater/repo-updater_config.toml`)
-  3. User (`$XDG_CONFIG_HOME/repo-updater/repo-updater_config.toml`, default `~/.config/repo-updater/repo-updater_config.toml`)
-  4. Project (`./.repo-updater/repo-updater_config.toml` or `./repo-updater_config.toml`)
-  5. Environment variables (`REPO_UPDATER_*`)
+  2. System (`$XDG_CONFIG_DIRS/repo-ffwd/repo-ffwd_config.toml`)
+  3. User (`$XDG_CONFIG_HOME/repo-ffwd/repo-ffwd_config.toml`, default `~/.config/repo-ffwd/repo-ffwd_config.toml`)
+  4. Project (`./.repo-ffwd/repo-ffwd_config.toml` or `./repo-ffwd_config.toml`)
+  5. Environment variables (`REPO_FFWD_*`)
   6. CLI flags (highest)
-  - `--config PATH` / `$REPO_UPDATER_CONFIG` overrides file discovery with a single file.
+  - `--config PATH` / `$REPO_FFWD_CONFIG` overrides file discovery with a single file.
 - **Merge rule (Decision #21):** Tables merge recursively; scalars and arrays (including `[[roots]]` and `exclude`) replace from nearer scope.
-- **Environment variables:** `REPO_UPDATER_CONFIG`, `REPO_UPDATER_OUTPUT`, `REPO_UPDATER_LOG_LEVEL`, `REPO_UPDATER_LOG_FILE`, `REPO_UPDATER_LOG_FORMAT`, `REPO_UPDATER_CONCURRENCY`, `REPO_UPDATER_TIMEOUT`, `REPO_UPDATER_PAGER`, `NO_COLOR`.
+- **Environment variables:** `REPO_FFWD_CONFIG`, `REPO_FFWD_OUTPUT`, `REPO_FFWD_LOG_LEVEL`, `REPO_FFWD_LOG_FILE`, `REPO_FFWD_LOG_FORMAT`, `REPO_FFWD_CONCURRENCY`, `REPO_FFWD_TIMEOUT`, `REPO_FFWD_PAGER`, `NO_COLOR`.
 
 ---
 
@@ -132,9 +132,9 @@ Available on every command (R4.1–R4.4). Exact flag matching is enforced — pr
     "error": {
       "code": 2,
       "name": "CONFIG",
-      "error_code": "REPO_UPDATER001",
+      "error_code": "REPO_FFWD001",
       "message": "No configuration file found and no --root provided.",
-      "hint": "Run 'repo-updater config init' or pass '--root <path>'."
+      "hint": "Run 'repo-ffwd config init' or pass '--root <path>'."
     }
   }
   ```
@@ -158,5 +158,5 @@ Available on every command (R4.1–R4.4). Exact flag matching is enforced — pr
 ## 7. Safety & Non-Interactive Guarantees (§8, §10)
 
 - **Non-interactive git subprocesses:** Every git command runs with `stdin=DEVNULL`, `GIT_TERMINAL_PROMPT=0`, `GCM_INTERACTIVE=never`, `LC_ALL=C`, and the configured per-repo `--timeout`. Default `GIT_SSH_COMMAND="ssh -o BatchMode=yes -o ConnectTimeout=15"` is injected **only** when neither `GIT_SSH_COMMAND`/`GIT_SSH` (environment) nor `core.sshCommand` (git config) is already set, preserving custom SSH identities and proxies while still guaranteeing non-interactive termination via closed stdin and timeout.
-- **First-run setup gating (Decision #51):** Missing-config setup prompts fire **only** when stdin and stderr are interactive TTYs, `--no-input` is not set, and the **resolved output mode** is not `json` (regardless of whether JSON was selected via `--json`, `-o json`, `$REPO_UPDATER_OUTPUT`, or config); otherwise exit `1` (`ExitCode.CONFIG`) with an actionable hint.
+- **First-run setup gating (Decision #51):** Missing-config setup prompts fire **only** when stdin and stderr are interactive TTYs, `--no-input` is not set, and the **resolved output mode** is not `json` (regardless of whether JSON was selected via `--json`, `-o json`, `$REPO_FFWD_OUTPUT`, or config); otherwise exit `1` (`ExitCode.CONFIG`) with an actionable hint.
 - **No unnecessary working-tree mutation & worktree safety:** Already-current (`behind == 0`), ahead (`ahead > 0`), and diverged repositories are never stashed or modified. Linked worktrees are skipped by default; off-branch repositories update only the local `<default>` ref via fast-forward-only `git fetch <remote> <default>:<default>` without switching branches. If `<default>` is checked out in any linked worktree, the ref update is skipped and reported (`skipped`) rather than mutating a shared ref out from under that worktree's index; under `--include-worktrees`, only the worktree that actually has `<default>` checked out performs `git merge --ff-only` while sibling checkouts skip the ref update.

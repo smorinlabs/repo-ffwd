@@ -1,4 +1,4 @@
-# CLI Standard Conformance — `repo-updater`
+# CLI Standard Conformance — `repo-ffwd`
 
 | | |
 |---|---|

@@ -1,31 +1,30 @@
 # serializer version: 1
-# name: test_help_snapshot[repo_updater completion]
+# name: test_help_snapshot[repo_ffwd completion]
   '''
-  Usage: repo-updater completion [OPTIONS] {bash|zsh|fish}
+  Usage: repo-ffwd completion [OPTIONS] {bash|zsh|fish}
   
     Print a shell completion script.
   
-    Examples:     repo_updater completion bash >> ~/.bashrc     eval
-    "$(repo_updater completion zsh)"
+    Examples:     repo_ffwd completion bash >> ~/.bashrc     eval "$(repo_ffwd
+    completion zsh)"
   
   Options:
     -h, --help  Show this message and exit.
   
   '''
 # ---
-# name: test_help_snapshot[repo_updater config get]
+# name: test_help_snapshot[repo_ffwd config get]
   '''
-  Usage: repo-updater config get [OPTIONS] {defaults.depth|logging.file|logging.fi
-                                 le_level|logging.format|logging.level|output.colo
-                                 r|output.format|output.only_changed|sync.autostas
-                                 h|sync.concurrency|sync.include_worktrees|sync.pr
-                                 une|sync.remote|sync.retries|sync.timeout_seconds
-                                 |token}
+  Usage: repo-ffwd config get [OPTIONS] {defaults.depth|logging.file|logging.file_
+                              level|logging.format|logging.level|output.color|outp
+                              ut.format|output.only_changed|sync.autostash|sync.co
+                              ncurrency|sync.include_worktrees|sync.prune|sync.rem
+                              ote|sync.retries|sync.timeout_seconds|token}
   
     Show a resolved config value and where it came from.
   
-    Examples:     repo-updater config get sync.concurrency     repo-updater config
-    get output.color --json
+    Examples:     repo-ffwd config get sync.concurrency     repo-ffwd config get
+    output.color --json
   
   Options:
     -o, --output [text|json|markdown]
@@ -43,15 +42,15 @@
     --config FILE                   Path to a TOML config file (overrides layered
                                     discovery).
     --token TEXT                    Py Personal Access Token (overrides
-                                    $REPO_UPDATER_TOKEN). Never stored.
+                                    $REPO_FFWD_TOKEN). Never stored.
     --no-input                      Never prompt; fail instead (for scripts/CI).
     -h, --help                      Show this message and exit.
   
   '''
 # ---
-# name: test_help_snapshot[repo_updater config init]
+# name: test_help_snapshot[repo_ffwd config init]
   '''
-  Usage: repo-updater config init [OPTIONS]
+  Usage: repo-ffwd config init [OPTIONS]
   
     Create or update the config file with guided prompts.
   
@@ -59,8 +58,8 @@
     common sync settings, offering currently resolved values as defaults, then
     writes them to the TOML config file. Examples:
   
-        repo-updater config init     repo-updater config init --root ~/projects
-        --yes     repo-updater config init --dry-run
+        repo-ffwd config init     repo-ffwd config init --root ~/projects --yes
+        repo-ffwd config init --dry-run
   
   Options:
     --root TEXT                     Root directory to include in initial
@@ -82,19 +81,19 @@
     --config FILE                   Path to a TOML config file (overrides layered
                                     discovery).
     --token TEXT                    Py Personal Access Token (overrides
-                                    $REPO_UPDATER_TOKEN). Never stored.
+                                    $REPO_FFWD_TOKEN). Never stored.
     --no-input                      Never prompt; fail instead (for scripts/CI).
     -h, --help                      Show this message and exit.
   
   '''
 # ---
-# name: test_help_snapshot[repo_updater config path]
+# name: test_help_snapshot[repo_ffwd config path]
   '''
-  Usage: repo-updater config path [OPTIONS]
+  Usage: repo-ffwd config path [OPTIONS]
   
     Show the config file path and whether it exists.
   
-    Examples:     repo-updater config path     repo-updater config path --json
+    Examples:     repo-ffwd config path     repo-ffwd config path --json
   
   Options:
     -o, --output [text|json|markdown]
@@ -112,26 +111,25 @@
     --config FILE                   Path to a TOML config file (overrides layered
                                     discovery).
     --token TEXT                    Py Personal Access Token (overrides
-                                    $REPO_UPDATER_TOKEN). Never stored.
+                                    $REPO_FFWD_TOKEN). Never stored.
     --no-input                      Never prompt; fail instead (for scripts/CI).
     -h, --help                      Show this message and exit.
   
   '''
 # ---
-# name: test_help_snapshot[repo_updater config set]
+# name: test_help_snapshot[repo_ffwd config set]
   '''
-  Usage: repo-updater config set [OPTIONS] {defaults.depth|logging.file|logging.fi
-                                 le_level|logging.format|logging.level|output.colo
-                                 r|output.format|output.only_changed|sync.autostas
-                                 h|sync.concurrency|sync.include_worktrees|sync.pr
-                                 une|sync.remote|sync.retries|sync.timeout_seconds
-                                 } VALUE
+  Usage: repo-ffwd config set [OPTIONS] {defaults.depth|logging.file|logging.file_
+                              level|logging.format|logging.level|output.color|outp
+                              ut.format|output.only_changed|sync.autostash|sync.co
+                              ncurrency|sync.include_worktrees|sync.prune|sync.rem
+                              ote|sync.retries|sync.timeout_seconds} VALUE
   
     Write a non-secret config value to the TOML config file.
   
-    KEY is a dotted path into the config tables. Examples:     repo-updater config
-    set sync.concurrency 8     repo-updater config set sync.autostash true
-    repo-updater config set output.color always --yes
+    KEY is a dotted path into the config tables. Examples:     repo-ffwd config
+    set sync.concurrency 8     repo-ffwd config set sync.autostash true     repo-
+    ffwd config set output.color always --yes
   
   Options:
     --dry-run                       Show what would change; write nothing.
@@ -151,20 +149,20 @@
     --config FILE                   Path to a TOML config file (overrides layered
                                     discovery).
     --token TEXT                    Py Personal Access Token (overrides
-                                    $REPO_UPDATER_TOKEN). Never stored.
+                                    $REPO_FFWD_TOKEN). Never stored.
     --no-input                      Never prompt; fail instead (for scripts/CI).
     -h, --help                      Show this message and exit.
   
   '''
 # ---
-# name: test_help_snapshot[repo_updater config view]
+# name: test_help_snapshot[repo_ffwd config view]
   '''
-  Usage: repo-updater config view [OPTIONS]
+  Usage: repo-ffwd config view [OPTIONS]
   
     Show the effective merged configuration.
   
-    Examples:     repo-updater config view     repo-updater config view --show-
-    origin --json
+    Examples:     repo-ffwd config view     repo-ffwd config view --show-origin
+    --json
   
   Options:
     --show-origin                   Show whether each resolved setting came from
@@ -184,15 +182,15 @@
     --config FILE                   Path to a TOML config file (overrides layered
                                     discovery).
     --token TEXT                    Py Personal Access Token (overrides
-                                    $REPO_UPDATER_TOKEN). Never stored.
+                                    $REPO_FFWD_TOKEN). Never stored.
     --no-input                      Never prompt; fail instead (for scripts/CI).
     -h, --help                      Show this message and exit.
   
   '''
 # ---
-# name: test_help_snapshot[repo_updater config]
+# name: test_help_snapshot[repo_ffwd config]
   '''
-  Usage: repo-updater config [OPTIONS] COMMAND [ARGS]...
+  Usage: repo-ffwd config [OPTIONS] COMMAND [ARGS]...
   
     Inspect and edit CLI configuration.
   
@@ -208,9 +206,9 @@
   
   '''
 # ---
-# name: test_help_snapshot[repo_updater doctor]
+# name: test_help_snapshot[repo_ffwd doctor]
   '''
-  Usage: repo-updater doctor [OPTIONS]
+  Usage: repo-ffwd doctor [OPTIONS]
   
     Diagnose configuration and environment.
   
@@ -237,20 +235,20 @@
     --config FILE                   Path to a TOML config file (overrides layered
                                     discovery).
     --token TEXT                    Py Personal Access Token (overrides
-                                    $REPO_UPDATER_TOKEN). Never stored.
+                                    $REPO_FFWD_TOKEN). Never stored.
     --no-input                      Never prompt; fail instead (for scripts/CI).
     -h, --help                      Show this message and exit.
   
   '''
 # ---
-# name: test_help_snapshot[repo_updater repo list]
+# name: test_help_snapshot[repo_ffwd repo list]
   '''
-  Usage: repo-updater repo list [OPTIONS]
+  Usage: repo-ffwd repo list [OPTIONS]
   
     List discovered Git repositories without making network calls.
   
-    Examples:     repo-updater repo list     repo-updater repo list --root
-    ~/projects --max-depth 2 --json
+    Examples:     repo-ffwd repo list     repo-ffwd repo list --root ~/projects
+    --max-depth 2 --json
   
   Options:
     --root TEXT                     Directory root to scan (repeatable; overrides
@@ -277,20 +275,19 @@
     --config FILE                   Path to a TOML config file (overrides layered
                                     discovery).
     --token TEXT                    Py Personal Access Token (overrides
-                                    $REPO_UPDATER_TOKEN). Never stored.
+                                    $REPO_FFWD_TOKEN). Never stored.
     --no-input                      Never prompt; fail instead (for scripts/CI).
     -h, --help                      Show this message and exit.
   
   '''
 # ---
-# name: test_help_snapshot[repo_updater repo status]
+# name: test_help_snapshot[repo_ffwd repo status]
   '''
-  Usage: repo-updater repo status [OPTIONS]
+  Usage: repo-ffwd repo status [OPTIONS]
   
     Show read-only branch, dirty, and ahead/behind status across repositories.
   
-    Examples:     repo-updater repo status     repo-updater repo status --fetch
-    --json
+    Examples:     repo-ffwd repo status     repo-ffwd repo status --fetch --json
   
   Options:
     --root TEXT                     Directory root to scan (repeatable; overrides
@@ -323,21 +320,21 @@
     --config FILE                   Path to a TOML config file (overrides layered
                                     discovery).
     --token TEXT                    Py Personal Access Token (overrides
-                                    $REPO_UPDATER_TOKEN). Never stored.
+                                    $REPO_FFWD_TOKEN). Never stored.
     --no-input                      Never prompt; fail instead (for scripts/CI).
     -h, --help                      Show this message and exit.
   
   '''
 # ---
-# name: test_help_snapshot[repo_updater repo sync]
+# name: test_help_snapshot[repo_ffwd repo sync]
   '''
-  Usage: repo-updater repo sync [OPTIONS]
+  Usage: repo-ffwd repo sync [OPTIONS]
   
     Fetch and fast-forward default branches across repositories in parallel.
   
-    Examples:     repo-updater repo sync     repo-updater repo sync --root
-    ~/projects --concurrency 8     repo-updater repo sync --dry-run --all
-    repo-updater repo sync --autostash --json --no-input
+    Examples:     repo-ffwd repo sync     repo-ffwd repo sync --root ~/projects
+    --concurrency 8     repo-ffwd repo sync --dry-run --all     repo-ffwd repo
+    sync --autostash --json --no-input
   
   Options:
     --root TEXT                     Directory root to scan (repeatable; overrides
@@ -380,15 +377,15 @@
     --config FILE                   Path to a TOML config file (overrides layered
                                     discovery).
     --token TEXT                    Py Personal Access Token (overrides
-                                    $REPO_UPDATER_TOKEN). Never stored.
+                                    $REPO_FFWD_TOKEN). Never stored.
     --no-input                      Never prompt; fail instead (for scripts/CI).
     -h, --help                      Show this message and exit.
   
   '''
 # ---
-# name: test_help_snapshot[repo_updater repo]
+# name: test_help_snapshot[repo_ffwd repo]
   '''
-  Usage: repo-updater repo [OPTIONS] COMMAND [ARGS]...
+  Usage: repo-ffwd repo [OPTIONS] COMMAND [ARGS]...
   
     Discover, inspect, and sync local Git repositories.
   
@@ -402,15 +399,15 @@
   
   '''
 # ---
-# name: test_help_snapshot[repo_updater]
+# name: test_help_snapshot[repo_ffwd]
   '''
-  Usage: repo-updater [OPTIONS] [COMMAND] [ARGS]...
+  Usage: repo-ffwd [OPTIONS] [COMMAND] [ARGS]...
   
-    repo-updater — safe, parallel, config-driven Git repository updater.
+    repo-ffwd — safe, parallel, config-driven Git repository updater.
   
-    Commands follow a noun-verb shape, e.g. `repo-updater repo sync`. Every
-    command supports -o/--output {text,json,markdown}, --json, -v/--verbose, --no-
-    color, and --config. Results go to stdout; logs and errors go to stderr.
+    Commands follow a noun-verb shape, e.g. `repo-ffwd repo sync`. Every command
+    supports -o/--output {text,json,markdown}, --json, -v/--verbose, --no-color,
+    and --config. Results go to stdout; logs and errors go to stderr.
   
   Options:
     -V, --version  Show version, Python, and platform, then exit.

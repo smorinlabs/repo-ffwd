@@ -40,9 +40,9 @@ clones, containers, and remote agent sessions start without it — run
 | Run tests | `pytest` (default excludes `slow`/`live` markers per ITM-046; full: `pytest -m ""`; parallel: add `-n auto`) |
 | Run one test | `pytest tests/test_file.py::test_name` |
 | Lint | `uv run ruff check .` |
-| Format | `just format` or `uv run ruff format src/repo_updater/` |
+| Format | `just format` or `uv run ruff format src/repo_ffwd/` |
 | Format check | `uv run ruff format --check .` |
-| Typecheck | `uv run --extra web ty check src/repo_updater/` (ITM-026 / ADR-03; `--extra web` so web/ imports resolve) |
+| Typecheck | `uv run --extra web ty check src/repo_ffwd/` (ITM-026 / ADR-03; `--extra web` so web/ imports resolve) |
 | Dependency CVE audit | `just audit` (WL-014; same pipeline as the weekly CI workflow) |
 | Web tests / dev server | `just test-web` / `just serve` (FastAPI, `web` extra) |
 | Secret scan | `scripts/check-gitleaks.sh --staged` or `--range` |
@@ -63,8 +63,8 @@ workflow enforce it).
 2. `just check` (full pipeline must pass).
 3. Press conformance (the `press-verify` CI workflow enforces this). Rule:
    any added/renamed file containing an identity value
-   (`repo_updater`, `repo-updater`, `repo_updater`, `REPO_UPDATER`,
-   author/owner names, "Repo Updater") must press cleanly — either
+   (`repo_ffwd`, `repo-ffwd`, `repo_ffwd`, `REPO_FFWD`,
+   author/owner names, "Repo Ffwd") must press cleanly — either
    the default rewrite covers it or `press/press-rules.toml` declares its
    neutralization (`[[regenerate]]`, `[[reset]]`, `[[remove]]`, or a
    reasoned exemption). Check locally:
@@ -155,7 +155,7 @@ Conventional PR titles remain required for review legibility.
 - Line length: 88 characters (Black standard)
 - Types: strict typing required for all functions
 - Imports: sorted (ruff isort); absolute intra-package imports
-  (`from repo_updater…` — the codebase convention)
+  (`from repo_ffwd…` — the codebase convention)
 - Naming: PEP 8 conventions enforced via Ruff
 - Errors: prefer explicit error handling over assertions
 - Tests: type annotations optional for test files
@@ -210,7 +210,7 @@ server (`uvx ty@latest server`) plus `/astral:` skills for uv, ty, and ruff.
 
 Codex does not have an official Astral plugin marketplace entry. This repo
 therefore carries a repo-local Codex adapter:
-`.agents/plugins/marketplace.json` registers `astral@repo-updater`
+`.agents/plugins/marketplace.json` registers `astral@repo-ffwd`
 from `plugins/astral` with `INSTALLED_BY_DEFAULT`. The adapter is skill-only:
 it vendors Astral's upstream `uv`, `ruff`, and `ty` `SKILL.md` files plus the
 upstream license files. Do not add duplicate `.agents/skills/uv`,

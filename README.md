@@ -1,4 +1,4 @@
-# Repo Updater
+# Repo Ffwd
 
 A safe, parallel, config-driven CLI and agent skill for keeping local Git repositories updated to their remote default branch.
 
@@ -15,34 +15,34 @@ A safe, parallel, config-driven CLI and agent skill for keeping local Git reposi
 
 ```bash
 # Run on demand with uvx
-uvx repo-updater --help
+uvx repo-ffwd --help
 
 # Or install persistently
-uv tool install repo-updater
-# pip install repo-updater
+uv tool install repo-ffwd
+# pip install repo-ffwd
 ```
 
 ## Quick Start
 
 ```bash
 # 1. Guided initial setup (creates your XDG TOML config)
-repo-updater config init
+repo-ffwd config init
 
 # 2. Preview discovered repositories (offline)
-repo-updater repo list
+repo-ffwd repo list
 
 # 3. Preview updates without mutating anything
-repo-updater repo sync --dry-run
+repo-ffwd repo sync --dry-run
 
 # 4. Sync all configured repositories in parallel
-repo-updater repo sync
+repo-ffwd repo sync
 ```
 
-If you run `repo-updater repo sync` interactively before creating a config file, it prompts to run guided setup. In scripts or CI (`--no-input`, piped stdin/stderr, or JSON output mode), it exits cleanly with an actionable hint unless `--root <path>` is passed.
+If you run `repo-ffwd repo sync` interactively before creating a config file, it prompts to run guided setup. In scripts or CI (`--no-input`, piped stdin/stderr, or JSON output mode), it exits cleanly with an actionable hint unless `--root <path>` is passed.
 
 ## Configuration
 
-Config lives in your XDG config directory (`repo-updater config path` prints the exact path):
+Config lives in your XDG config directory (`repo-ffwd config path` prints the exact path):
 
 ```toml
 [sync]
@@ -73,25 +73,25 @@ tags = ["work"]
 Inspect and edit settings without touching the file directly:
 
 ```bash
-repo-updater config view --show-origin
-repo-updater config set sync.concurrency 8
-repo-updater doctor
+repo-ffwd config view --show-origin
+repo-ffwd config set sync.concurrency 8
+repo-ffwd doctor
 ```
 
 ## Commands
 
-- `repo-updater repo sync` — Fetch and fast-forward default branches in parallel (`--root`, `--max-depth`, `--concurrency`, `--timeout`, `--autostash`, `--dry-run`, `--all`, `--tag`, `--fail-fast`)
-- `repo-updater repo list` — Offline discovery preview
-- `repo-updater repo status` — Read-only branch, dirty, and ahead/behind status (`--fetch` opt-in)
-- `repo-updater config init | view | path | get | set` — Configuration management
-- `repo-updater doctor` — Check Python, `git`, config file, and configured roots
-- `repo-updater completion bash|zsh|fish` — Shell completions
+- `repo-ffwd repo sync` — Fetch and fast-forward default branches in parallel (`--root`, `--max-depth`, `--concurrency`, `--timeout`, `--autostash`, `--dry-run`, `--all`, `--tag`, `--fail-fast`)
+- `repo-ffwd repo list` — Offline discovery preview
+- `repo-ffwd repo status` — Read-only branch, dirty, and ahead/behind status (`--fetch` opt-in)
+- `repo-ffwd config init | view | path | get | set` — Configuration management
+- `repo-ffwd doctor` — Check Python, `git`, config file, and configured roots
+- `repo-ffwd completion bash|zsh|fish` — Shell completions
 
 See [docs/cli-interface.md](docs/cli-interface.md) for the complete interface contract and [CONFORMANCE.md](CONFORMANCE.md) for the CLI Design Standard v1.4.15 conformance record.
 
 ## Bundled Agent Skill
 
-This repository ships the `repo-updater` skill plugin under [`plugins/repo-updater/`](plugins/repo-updater/) with manifests for Claude Code, Codex, and Antigravity.
+This repository ships the `repo-ffwd` skill plugin under [`plugins/repo-ffwd/`](plugins/repo-ffwd/) with manifests for Claude Code, Codex, and Antigravity.
 
 ## Development
 

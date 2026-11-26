@@ -1,10 +1,10 @@
-"""Tests for repo-updater settings schema, coercion, and layered merging."""
+"""Tests for repo-ffwd settings schema, coercion, and layered merging."""
 
 import pytest
 
-from repo_updater.core.config import get_file_value, load_config, set_config_value
-from repo_updater.core.errors import ConfigError
-from repo_updater.core.settings import (
+from repo_ffwd.core.config import get_file_value, load_config, set_config_value
+from repo_ffwd.core.errors import ConfigError
+from repo_ffwd.core.settings import (
     DEFAULT_EXCLUDES,
     RootConfig,
     Settings,
@@ -57,7 +57,7 @@ def test_coerce_value_typed_scalars():
 
 
 def test_set_and_reload_typed_config_values(tmp_path):
-    cfg_file = tmp_path / "repo_updater_config.toml"
+    cfg_file = tmp_path / "repo_ffwd_config.toml"
     assert set_config_value(cfg_file, "sync.concurrency", "10") == 10
     assert set_config_value(cfg_file, "sync.autostash", "true") is True
     assert get_file_value(cfg_file, "sync.concurrency") == 10

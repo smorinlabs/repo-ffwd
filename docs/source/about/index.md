@@ -1,6 +1,6 @@
-# About Repo Updater
+# About Repo Ffwd
 
-Welcome to Repo Updater! This section covers the project's purpose, philosophy, and key features, giving you a clear understanding of what it offers.
+Welcome to Repo Ffwd! This section covers the project's purpose, philosophy, and key features, giving you a clear understanding of what it offers.
 
 
 ```{toctree}

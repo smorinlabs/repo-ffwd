@@ -1,6 +1,6 @@
 # Command-Line Interface (CLI) Commands
 
-This section provides an overview of the available commands in the Repo Updater CLI. These commands enable you to perform various tasks directly from the command line, such as running the project, managing dependencies, and ensuring code quality.
+This section provides an overview of the available commands in the Repo Ffwd CLI. These commands enable you to perform various tasks directly from the command line, such as running the project, managing dependencies, and ensuring code quality.
 
 ## Overview
 
@@ -19,7 +19,7 @@ just run [cmd] [args]
 ```
 
 #### Arguments
-- `cmd`: The command to run (default: `repo_updater`).
+- `cmd`: The command to run (default: `repo_ffwd`).
 - `args`: Arguments to pass to the command.
 
 ---

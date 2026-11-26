@@ -193,9 +193,9 @@ just check
 
 For the bundled CLI example (not repo infrastructure):
 
-- **API token** — provide via `--token` or the `REPO_UPDATER_TOKEN` env var (it is
+- **API token** — provide via `--token` or the `REPO_FFWD_TOKEN` env var (it is
   never stored in the config file; non-secret settings use
-  `repo_updater config set <section>.<key> <value>`).
+  `repo_ffwd config set <section>.<key> <value>`).
 - **Manual publish fallback** — `cp .pypirc.template ~/.pypirc`, fill in PyPI
   tokens, `chmod 600 ~/.pypirc` (only needed if OIDC publishing is unavailable).
 

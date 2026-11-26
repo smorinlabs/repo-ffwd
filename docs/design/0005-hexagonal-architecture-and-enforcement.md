@@ -3,7 +3,7 @@
 - **Status:** Proposed
 - **Type:** Design / convention
 - **Created:** 2026-06-14
-- **Applies to:** `src/repo_updater/` package structure, the CLI and web
+- **Applies to:** `src/repo_ffwd/` package structure, the CLI and web
   front-ends, and the dev/CI tooling that keeps the boundaries honest.
 
 This doc specifies how the core logic is structured so it can be driven from
@@ -19,7 +19,7 @@ The package already has the right instinct: business logic lives in
 `core/`, and both `cli/` and `web/` import it without importing each other.
 That is the **shared in-process core library** pattern (a.k.a. *functional
 core, imperative shell*): the same `ProjectsService` and `Project` models
-serve `repo_updater projects list` and `GET /v1/projects`. We deliberately do **not**
+serve `repo_ffwd projects list` and `GET /v1/projects`. We deliberately do **not**
 adopt the *CLI-over-HTTP* pattern (CLI as a thin client of the running web
 service) — that boundary only earns its cost when the CLI's job is to manage
 a remote, multi-tenant deployment, which is not the case here.
@@ -55,7 +55,7 @@ and `ty` (port satisfaction).
   CLI exposes commands from many of them.
 
   ```
-  src/repo_updater/
+  src/repo_ffwd/
   ├── shared/                       # shared kernel: depended on by all, depends on nothing
   │   ├── errors.py                 #   PyError, ConfigError, AuthError, APIError + ExitCode
   │   ├── logging.py  paths.py  config.py  settings.py  format.py
@@ -120,7 +120,7 @@ and `ty` (port satisfaction).
   ```python
   # projects/application/ports.py
   from typing import Protocol
-  from repo_updater.projects.domain.models import Project
+  from repo_ffwd.projects.domain.models import Project
 
 
   class ProjectsRepository(Protocol):
@@ -245,30 +245,30 @@ is the system of record where they overlap.
 
   ```toml
   [tool.importlinter]
-  root_package = "repo_updater"
+  root_package = "repo_ffwd"
 
   [[tool.importlinter.contracts]]
   name = "Hexagonal layers (inner rings know nothing of outer)"
   type = "layers"
   layers = ["interfaces", "adapters", "application", "domain"]
-  containers = ["repo_updater.projects"]
+  containers = ["repo_ffwd.projects"]
 
   [[tool.importlinter.contracts]]
   name = "CLI and web never import each other"
   type = "forbidden"
-  source_modules = ["repo_updater.interfaces.cli"]
-  forbidden_modules = ["repo_updater.interfaces.web"]
+  source_modules = ["repo_ffwd.interfaces.cli"]
+  forbidden_modules = ["repo_ffwd.interfaces.web"]
   # …and the symmetric contract.
 
   [[tool.importlinter.contracts]]
   name = "Composition root is imported only by the front-ends"
   type = "forbidden"
   source_modules = [
-    "repo_updater.projects.domain",
-    "repo_updater.projects.application",
-    "repo_updater.projects.adapters",
+    "repo_ffwd.projects.domain",
+    "repo_ffwd.projects.application",
+    "repo_ffwd.projects.adapters",
   ]
-  forbidden_modules = ["repo_updater.composition"]
+  forbidden_modules = ["repo_ffwd.composition"]
   ```
 
   Run via `uv run lint-imports` (locked dev group, per WL-001), wired into
@@ -291,7 +291,7 @@ is the system of record where they overlap.
 - **HEX-32 — `ruff` TID251 is the fast, coarse framework guard.** A
   `banned-api` rule catches framework-bleed at pre-commit speed. Because
   ruff's `banned-api` is global, it is scoped to the layer via a nested
-  `src/repo_updater/core/ruff.toml` that bans `click`/`fastapi`/
+  `src/repo_ffwd/core/ruff.toml` that bans `click`/`fastapi`/
   `uvicorn` under `core/` (`requests` stays allowed — the HTTP adapter needs
   it). The authoritative, graph-wide framework-bleed rule remains the
   `import-linter` contract; ruff is the cheap first line, not the system of

@@ -1,6 +1,6 @@
 # Tutorials Overview
 
-Welcome to the Tutorials section of the Repo Updater documentation. This section provides guided learning paths to help you get the most out of the project.
+Welcome to the Tutorials section of the Repo Ffwd documentation. This section provides guided learning paths to help you get the most out of the project.
 
 <!-- ## Table of Contents -->
 

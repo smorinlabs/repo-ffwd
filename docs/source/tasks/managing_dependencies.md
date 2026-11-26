@@ -21,11 +21,11 @@ uv pip install --editable ".[dev]"
 Use UV to run various development tools:
 
 ```sh
-uvx ruff format repo_updater/       # Format code
-uvx ruff check repo_updater/        # Run linter
-uv run ty check src/repo_updater/  # Type check
+uvx ruff format repo_ffwd/       # Format code
+uvx ruff check repo_ffwd/        # Run linter
+uv run ty check src/repo_ffwd/  # Type check
 uvx --with-editable . pytest               # Run tests
-uvx --with pytest-cov --with-editable . pytest --cov=repo_updater --cov-report=term-missing  # Test coverage
+uvx --with pytest-cov --with-editable . pytest --cov=repo_ffwd --cov-report=term-missing  # Test coverage
 ```
 
 ### Pre-Commit Hooks (Optional)
@@ -76,10 +76,10 @@ pip install --editable ".[dev]"
 You can run development tools directly with pip:
 
 ```sh
-ruff format repo_updater/
-ruff check repo_updater/
-ty check src/repo_updater/
-pytest --cov=repo_updater --cov-report=term-missing
+ruff format repo_ffwd/
+ruff check repo_ffwd/
+ty check src/repo_ffwd/
+pytest --cov=repo_ffwd --cov-report=term-missing
 ```
 
 

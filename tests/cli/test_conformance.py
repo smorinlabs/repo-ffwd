@@ -5,8 +5,8 @@ import json
 import pytest
 from click.testing import CliRunner
 
-from repo_updater import __version__
-from repo_updater.cli.main import cli
+from repo_ffwd import __version__
+from repo_ffwd.cli.main import cli
 
 
 @pytest.fixture
@@ -24,7 +24,7 @@ def test_r4_1_help_and_version_stdout_exit_zero(runner):
     for flag in ("-V", "--version"):
         res = runner.invoke(cli, [flag])
         assert res.exit_code == 0
-        assert f"repo-updater {__version__}" in res.output
+        assert f"repo-ffwd {__version__}" in res.output
 
 
 def test_r7_9_bare_invocation_and_incomplete_group(runner):

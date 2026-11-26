@@ -1,8 +1,8 @@
 {
-  "name": "repo-updater-tooling",
+  "name": "repo-ffwd-tooling",
   "version": "0.0.0",
   "private": true,
-  "description": "Bun-managed commitlint and release tooling for repo-updater.",
+  "description": "Bun-managed commitlint and release tooling for repo-ffwd.",
   "devDependencies": {
     "@commitlint/cli": "^21.0.1",
     "@commitlint/config-conventional": "^21.0.1",

@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from repo_updater.core import (
+from repo_ffwd.core import (
     Config,
     ConfigPath,
     Project,
@@ -14,14 +14,14 @@ from repo_updater.core import (
     load_config,
     paths,
 )
-from repo_updater.core.config import (
+from repo_ffwd.core.config import (
     TOKEN_ENV_VAR,
     get_file_value,
     set_config_value,
 )
-from repo_updater.core.errors import ConfigError
-from repo_updater.core.logging import LogFormat, configure_logging, get_logger
-from repo_updater.core.settings import writable_keys
+from repo_ffwd.core.errors import ConfigError
+from repo_ffwd.core.logging import LogFormat, configure_logging, get_logger
+from repo_ffwd.core.settings import writable_keys
 
 
 def test_project_list_renders_rows():
@@ -63,7 +63,7 @@ def test_load_config_flag_wins(monkeypatch):
 
 def test_token_never_read_from_file(tmp_path, monkeypatch):
     # R8: a token in the config file is ignored — secrets are flag/env only.
-    cfg_file = tmp_path / "repo_updater_config.toml"
+    cfg_file = tmp_path / "repo_ffwd_config.toml"
     cfg_file.write_text('token = "file_token"\n')
     monkeypatch.delenv(TOKEN_ENV_VAR, raising=False)
     cfg = load_config(config_file=str(cfg_file))
@@ -73,7 +73,7 @@ def test_token_never_read_from_file(tmp_path, monkeypatch):
 
 def test_load_config_missing(monkeypatch):
     monkeypatch.delenv(TOKEN_ENV_VAR, raising=False)
-    cfg = load_config(config_file="/nonexistent/path/repo_updater_config.toml")
+    cfg = load_config(config_file="/nonexistent/path/repo_ffwd_config.toml")
     assert isinstance(cfg, Config)
     assert cfg.token is None
     assert cfg.source is None
@@ -81,7 +81,7 @@ def test_load_config_missing(monkeypatch):
 
 def test_settings_parsed_from_file(tmp_path, monkeypatch):
     monkeypatch.delenv(TOKEN_ENV_VAR, raising=False)
-    cfg_file = tmp_path / "repo_updater_config.toml"
+    cfg_file = tmp_path / "repo_ffwd_config.toml"
     cfg_file.write_text('[output]\ncolor = "always"\n[logging]\nlevel = "info"\n')
     cfg = load_config(config_file=str(cfg_file))
     assert cfg.settings.output.color == "always"
@@ -91,14 +91,14 @@ def test_settings_parsed_from_file(tmp_path, monkeypatch):
 
 def test_settings_defaults_when_no_file(monkeypatch):
     monkeypatch.delenv(TOKEN_ENV_VAR, raising=False)
-    cfg = load_config(config_file="/nonexistent/repo_updater_config.toml")
+    cfg = load_config(config_file="/nonexistent/repo_ffwd_config.toml")
     assert cfg.settings.output.format == "text"
     assert cfg.settings.output.color == "auto"
     assert cfg.settings.logging.level == "warning"
 
 
 def test_set_config_value_writes_nested_table(tmp_path):
-    cfg_file = tmp_path / "repo_updater_config.toml"
+    cfg_file = tmp_path / "repo_ffwd_config.toml"
     set_config_value(cfg_file, "logging.level", "info")
     set_config_value(cfg_file, "output.color", "always")
     assert get_file_value(cfg_file, "logging.level") == "info"
@@ -110,7 +110,7 @@ def test_set_config_value_writes_nested_table(tmp_path):
 
 
 def test_set_config_value_rejects_unknown_key(tmp_path):
-    cfg_file = tmp_path / "repo_updater_config.toml"
+    cfg_file = tmp_path / "repo_ffwd_config.toml"
     with pytest.raises(ConfigError):
         set_config_value(cfg_file, "logging.nope", "x")
     with pytest.raises(ConfigError):
@@ -118,7 +118,7 @@ def test_set_config_value_rejects_unknown_key(tmp_path):
 
 
 def test_set_config_value_rejects_invalid_value(tmp_path):
-    cfg_file = tmp_path / "repo_updater_config.toml"
+    cfg_file = tmp_path / "repo_ffwd_config.toml"
     with pytest.raises(ConfigError):
         set_config_value(cfg_file, "output.color", "rainbow")
 
@@ -142,19 +142,18 @@ def test_logging_configures_without_error():
 
 def test_config_file_naming_under_xdg(tmp_path, monkeypatch):
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
-    assert paths.config_file() == tmp_path / "repo_updater" / "repo_updater_config.toml"
+    assert paths.config_file() == tmp_path / "repo_ffwd" / "repo_ffwd_config.toml"
 
 
 def test_database_file_naming_under_xdg(tmp_path, monkeypatch):
     monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path))
-    assert paths.database_file() == tmp_path / "repo_updater" / "repo_updater_db.db"
+    assert paths.database_file() == tmp_path / "repo_ffwd" / "repo_ffwd_db.db"
 
 
 def test_state_file_naming_under_xdg(tmp_path, monkeypatch):
     monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path))
     assert (
-        paths.state_file("history")
-        == tmp_path / "repo_updater" / "repo_updater_history.log"
+        paths.state_file("history") == tmp_path / "repo_ffwd" / "repo_ffwd_history.log"
     )
 
 
@@ -178,7 +177,7 @@ def test_xdg_relative_value_ignored(monkeypatch):
 def test_invalid_value_warns_and_defaults(tmp_path, monkeypatch):
     # An invalid setting value must never brick loading: dropped + warned.
     monkeypatch.delenv(TOKEN_ENV_VAR, raising=False)
-    cfg_file = tmp_path / "repo_updater_config.toml"
+    cfg_file = tmp_path / "repo_ffwd_config.toml"
     cfg_file.write_text('[output]\ncolor = "yes"\nformat = "json"\n')
     cfg = load_config(config_file=str(cfg_file))
     assert cfg.settings.output.color == "auto"  # invalid value -> default
@@ -189,7 +188,7 @@ def test_invalid_value_warns_and_defaults(tmp_path, monkeypatch):
 def test_explicit_config_invalid_toml_raises(tmp_path, monkeypatch):
     # --config naming an unparsable file is a loud user error (not ignored).
     monkeypatch.delenv(TOKEN_ENV_VAR, raising=False)
-    cfg_file = tmp_path / "repo_updater_config.toml"
+    cfg_file = tmp_path / "repo_ffwd_config.toml"
     cfg_file.write_text('[output\ncolor = "always"\n')  # unclosed table
     with pytest.raises(ConfigError):
         load_config(config_file=str(cfg_file))
@@ -205,7 +204,7 @@ def test_explicit_config_missing_is_tolerated(tmp_path, monkeypatch):
 
 def test_set_config_value_refuses_corrupt_file(tmp_path):
     # Never silently rewrite a corrupt config (would destroy user settings).
-    cfg_file = tmp_path / "repo_updater_config.toml"
+    cfg_file = tmp_path / "repo_ffwd_config.toml"
     cfg_file.write_text('[output\ncolor = "always"\n')  # corrupt
     before = cfg_file.read_text()
     with pytest.raises(ConfigError):
@@ -214,7 +213,7 @@ def test_set_config_value_refuses_corrupt_file(tmp_path):
 
 
 def test_set_config_value_restricts_permissions(tmp_path):
-    cfg_file = tmp_path / "repo_updater_config.toml"
+    cfg_file = tmp_path / "repo_ffwd_config.toml"
     set_config_value(cfg_file, "output.color", "never")
     if sys.platform != "win32":  # POSIX modes don't exist on windows
         assert (cfg_file.stat().st_mode & 0o777) == 0o600
@@ -228,8 +227,8 @@ def test_log_level_vocabularies_stay_in_sync():
     # derive from LOG_LEVELS directly.
     from typing import get_args
 
-    from repo_updater.core.logging import LOG_LEVELS
-    from repo_updater.core.settings import LoggingSettings
+    from repo_ffwd.core.logging import LOG_LEVELS
+    from repo_ffwd.core.settings import LoggingSettings
 
     literal = get_args(LoggingSettings.model_fields["level"].annotation)
     assert tuple(LOG_LEVELS) == literal
@@ -240,8 +239,8 @@ def test_log_level_vocabularies_stay_in_sync():
 def test_output_format_vocabularies_stay_in_sync():
     from typing import get_args
 
-    from repo_updater.cli.output import OutputMode
-    from repo_updater.core.settings import OutputSettings
+    from repo_ffwd.cli.output import OutputMode
+    from repo_ffwd.core.settings import OutputSettings
 
     literal = get_args(OutputSettings.model_fields["format"].annotation)
     assert tuple(m.value for m in OutputMode) == literal
@@ -249,9 +248,9 @@ def test_output_format_vocabularies_stay_in_sync():
 
 def test_write_leaves_no_temp_files(tmp_path):
     # Atomic write: only the config file remains after a set.
-    cfg_file = tmp_path / "repo_updater_config.toml"
+    cfg_file = tmp_path / "repo_ffwd_config.toml"
     set_config_value(cfg_file, "output.color", "never")
     set_config_value(cfg_file, "logging.level", "info")
-    assert [p.name for p in tmp_path.iterdir()] == ["repo_updater_config.toml"]
+    assert [p.name for p in tmp_path.iterdir()] == ["repo_ffwd_config.toml"]
     if sys.platform != "win32":  # POSIX modes don't exist on windows
         assert (cfg_file.stat().st_mode & 0o777) == 0o600

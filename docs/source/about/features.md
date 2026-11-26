@@ -1,4 +1,4 @@
-# 🚀 **Key Features of Repo Updater**
+# 🚀 **Key Features of Repo Ffwd**
 
 - **Zero Configuration Setup**: Get started immediately with pre-configured development tools
 - **Type Safety First**: Built-in MyPy configuration and VS Code integration for robust type checking

@@ -18,7 +18,7 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 [project]
-name = "repo_updater"
+name = "repo-ffwd"
 # ITM-070 — static version (ADR-06 cutover). release-please bumps this.
 version = "0.1.0"
 description = "Safe, parallel, config-driven updater for local Git repositories"
@@ -50,7 +50,7 @@ dependencies = [
 
 # Single-distribution + extras strategy. The library (core/) and CLI always
 # install; the web service ships behind the `web` extra:
-#   uv sync --extra web   /   pip install repo-updater[web]
+#   uv sync --extra web   /   pip install repo-ffwd[web]
 # Tracing is a further opt-in (`otel` extra) — heavy deps, soft-imported.
 [project.optional-dependencies]
 web = [
@@ -116,17 +116,17 @@ docs = [
 
 
 [project.scripts]
-# Noun-verb CLI (gh-style): repo-updater <noun> <verb>
-repo-updater = "repo_updater.cli.main:cli"
-repo_updater = "repo_updater.cli.main:cli"
+# Noun-verb CLI (gh-style): repo-ffwd <noun> <verb>
+repo-ffwd = "repo_ffwd.cli.main:cli"
+repo_ffwd = "repo_ffwd.cli.main:cli"
 
 # ITM-072 — package metadata URLs (round 19).
 [project.urls]
-Homepage = "https://github.com/smorinlabs/repo-updater"
-Repository = "https://github.com/smorinlabs/repo-updater"
-Documentation = "https://repo-updater.readthedocs.io/en/latest/"
-Changelog = "https://github.com/smorinlabs/repo-updater/blob/main/CHANGELOG.md"
-Issues = "https://github.com/smorinlabs/repo-updater/issues"
+Homepage = "https://github.com/smorinlabs/repo-ffwd"
+Repository = "https://github.com/smorinlabs/repo-ffwd"
+Documentation = "https://repo-ffwd.readthedocs.io/en/latest/"
+Changelog = "https://github.com/smorinlabs/repo-ffwd/blob/main/CHANGELOG.md"
+Issues = "https://github.com/smorinlabs/repo-ffwd/issues"
 
 # ITM-073 — uv_build (ADR-06 cutover; replaces Hatchling + hatch-vcs).
 [build-system]
@@ -135,10 +135,10 @@ build-backend = "uv_build"
 
 # ITM-074 — uv_build module configuration.
 # Template uses a flat layout (package at repo root, not src/) — must set
-# module-root = "" so uv_build doesn't expect src/repo_updater/.
+# module-root = "" so uv_build doesn't expect src/repo_ffwd/.
 [tool.uv.build-backend]
-module-name = "repo_updater"
-# src/ layout (Decision 1) — package now lives at src/repo_updater/.
+module-name = "repo_ffwd"
+# src/ layout (Decision 1) — package now lives at src/repo_ffwd/.
 module-root = "src"
 
 [tool.ruff]
@@ -185,7 +185,7 @@ exclude = [
   "build",
   "dist",
   "docs/source/conf.py",
-  "src/repo_updater/_version.py",
+  "src/repo_ffwd/_version.py",
   "prototypes",                          # P0004 template-press engine prototypes (own lint config in template-press)
   # Vendored Muse runtime: preserve exact upstream skill output; tested upstream.
   ".github/scripts/muse_audit_triage.py",
@@ -216,7 +216,7 @@ line-ending = "auto"
 # CI typechecking runs ty (ADR-03); this section drives the VS Code Pyright
 # extension and ad-hoc `pyright` runs.
 [tool.pyright]
-include = ["src/repo_updater", "tests"]
+include = ["src/repo_ffwd", "tests"]
 exclude = ["**/node_modules", "**/__pycache__"]
 defineConstant = { DEBUG = true }
 typeCheckingMode = "strict"
@@ -245,7 +245,7 @@ reportUnusedClass = true
 # strict-mode-based: its correctness core already defaults to `error`, so this
 # block only promotes the handful of quality rules that ship below `error`.
 # Each was verified against the pinned ty (see uv.lock, 0.0.61): running
-# `ty check --error <rule> src/repo_updater/` passes for each.
+# `ty check --error <rule> src/repo_ffwd/` passes for each.
 # `error-on-warning` is set explicitly to false below (not left implicit): a
 # dependency `deprecated` warning must not fail every fork's CI, and pinning the
 # value keeps CI deterministic across ty upgrades (its default is version-
@@ -309,7 +309,7 @@ ignore-words-list = "ans,porjects,unparseable"
 # ans: variable name used in prompt-handling code; codespell wants to "fix"
 # it to "and". Whitelist to keep the short variable name.
 # porjects: intentional typo — the did-you-mean example in cli/groups.py and
-# its test ("repo_updater porjects" must suggest "projects").
+# its test ("repo_ffwd porjects" must suggest "projects").
 check-filenames = true
 check-hidden = false
 
@@ -320,7 +320,7 @@ check-hidden = false
 # (core / cli / web); the feature-first reshape (HEX-02) + tach come with the
 # second capability.
 [tool.importlinter]
-root_package = "repo_updater"
+root_package = "repo_ffwd"
 # Required because the framework-bleed contract names external packages
 # (fastapi/click/uvicorn) as forbidden imports.
 include_external_packages = true
@@ -328,31 +328,31 @@ include_external_packages = true
 [[tool.importlinter.contracts]]
 name = "core never imports the front-ends (inward-only, HEX-01)"
 type = "forbidden"
-source_modules = ["repo_updater.core"]
-forbidden_modules = ["repo_updater.cli", "repo_updater.web"]
+source_modules = ["repo_ffwd.core"]
+forbidden_modules = ["repo_ffwd.cli", "repo_ffwd.web"]
 
 [[tool.importlinter.contracts]]
 name = "cli and web are independent of each other"
 type = "independence"
-modules = ["repo_updater.cli", "repo_updater.web"]
+modules = ["repo_ffwd.cli", "repo_ffwd.web"]
 
 [[tool.importlinter.contracts]]
 name = "composition root is not imported by core (HEX-04)"
 type = "forbidden"
-source_modules = ["repo_updater.core"]
-forbidden_modules = ["repo_updater.composition"]
+source_modules = ["repo_ffwd.core"]
+forbidden_modules = ["repo_ffwd.composition"]
 
 [[tool.importlinter.contracts]]
 name = "core layering: models < services < adapters (HEX-01)"
 type = "layers"
 layers = [
-  "repo_updater.core.adapters",
-  "repo_updater.core.services",
-  "repo_updater.core.models",
+  "repo_ffwd.core.adapters",
+  "repo_ffwd.core.services",
+  "repo_ffwd.core.models",
 ]
 
 [[tool.importlinter.contracts]]
 name = "core does not import web/cli frameworks (framework-bleed, HEX-32)"
 type = "forbidden"
-source_modules = ["repo_updater.core"]
+source_modules = ["repo_ffwd.core"]
 forbidden_modules = ["fastapi", "click", "uvicorn"]

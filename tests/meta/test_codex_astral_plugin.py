@@ -35,8 +35,8 @@ def test_repo_marketplace_defaults_astral_plugin_on() -> None:
         (REPO_ROOT / ".agents" / "plugins" / "marketplace.json").read_text()
     )
 
-    assert marketplace["name"] == "repo-updater"
-    assert marketplace["interface"]["displayName"] == "repo-updater"
+    assert marketplace["name"] == "repo-ffwd"
+    assert marketplace["interface"]["displayName"] == "repo-ffwd"
     assert marketplace["plugins"] == [
         {
             "name": "astral",

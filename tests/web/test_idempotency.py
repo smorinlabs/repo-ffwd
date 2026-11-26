@@ -5,7 +5,7 @@ import itertools
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from repo_updater.web.idempotency import IdempotencyMiddleware
+from repo_ffwd.web.idempotency import IdempotencyMiddleware
 
 counter = itertools.count()
 

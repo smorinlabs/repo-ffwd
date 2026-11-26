@@ -16,21 +16,21 @@ vanished entirely unless the user happened to pass `--verbose`.
 
 Three-part error contract, all append-only:
 
-1. Every expected error carries a **stable `REPO_UPDATER###` error code** (a string
+1. Every expected error carries a **stable `REPO_FFWD###` error code** (a string
    constant in `core/errors.py`, finer-grained than exit codes — many codes
    may share one exit code) plus an optional **`hint`**: one actionable next
    step rendered under the message and as a `hint` key in the JSON error
    object.
 2. **Unexpected exceptions** — including failures while building the
-   `AppContext` at startup — emit `REPO_UPDATER000`, exit `IO` (4), and always
-   append the full traceback to `<state>/repo_updater/repo_updater_crash.log`, printing
+   `AppContext` at startup — emit `REPO_FFWD000`, exit `IO` (4), and always
+   append the full traceback to `<state>/repo_ffwd/repo_ffwd_crash.log`, printing
    `full traceback: <path>` so nothing is lost without `--verbose`.
 3. The JSON `error` object only ever **gains** keys (`error_code`, `hint`,
    `traceback_path`); existing keys (`code`, `name`, `message`) are frozen.
 
 Codes are literal strings (not derived from `APP_NAME` at runtime) and the
 files carrying them are registered in `init/manifest.toml`, so a fork's
-`just init` rewrites the prefix wholesale — same convention as the `REPO_UPDATER_*`
+`just init` rewrites the prefix wholesale — same convention as the `REPO_FFWD_*`
 env vars.
 
 ## Consequences

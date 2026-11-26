@@ -10,8 +10,8 @@ import importlib
 import pytest
 from fastapi import FastAPI
 
-from repo_updater.core.paths import APP_NAME
-from repo_updater.web import telemetry
+from repo_ffwd.core.paths import APP_NAME
+from repo_ffwd.web import telemetry
 
 
 def test_instrument_tracing_degrades_without_otel(monkeypatch):
@@ -54,8 +54,8 @@ def test_native_fastapi_telemetry_off_when_otel_disabled(monkeypatch):
     # providers are configured. Simulate configured providers and check that
     # create_app keeps native telemetry off while the setting is off (WEB-10).
     asgi = pytest.importorskip("fastapi.telemetry._asgi")
-    from repo_updater.web.app import create_app
-    from repo_updater.web.settings import WebSettings
+    from repo_ffwd.web.app import create_app
+    from repo_ffwd.web.settings import WebSettings
 
     monkeypatch.setattr(asgi, "_unconfigured", lambda provider: False)
     app = create_app(WebSettings(otel_enabled=False, metrics_enabled=False))

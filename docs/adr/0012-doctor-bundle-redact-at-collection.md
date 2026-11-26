@@ -14,7 +14,7 @@ eventually leak via serialization, logging, or copy-paste.
 
 ## Decision
 
-`repo_updater doctor --bundle` renders a `DiagnosticsBundle` in which secrets are
+`repo_ffwd doctor --bundle` renders a `DiagnosticsBundle` in which secrets are
 **redacted at collection time** — they never enter the model at all. The
 token appears only as presence + source; app-prefixed env vars whose names
 contain a secret-shaped marker (`TOKEN`, `SECRET`, `KEY`, `PASSWORD`,

@@ -1,6 +1,6 @@
-# Contributing to Repo Updater
+# Contributing to Repo Ffwd
 
-Thank you for your interest in contributing to Repo Updater! We welcome contributions from the community and are excited to see what you can bring to the project.
+Thank you for your interest in contributing to Repo Ffwd! We welcome contributions from the community and are excited to see what you can bring to the project.
 
 ## Setup
 
@@ -65,7 +65,7 @@ For more details on how the CLA Assistant works, see the [CLA Assistant document
 
 ### Reporting Bugs
 
-If you find a bug in the project, please open an issue on GitHub using the [Bug Report template](https://github.com/smorinlabs/repo-updater/issues). Provide as much detail as possible, including:
+If you find a bug in the project, please open an issue on GitHub using the [Bug Report template](https://github.com/smorinlabs/repo-ffwd/issues). Provide as much detail as possible, including:
 - A clear and descriptive title
 - A detailed description of the problem
 - Steps to reproduce the issue
@@ -146,7 +146,7 @@ Subject must be lowercase (`subject-case` rule). commitlint will reject other ca
 
 If you need help or have any questions, feel free to open an issue on GitHub or reach out to the maintainers.
 
-Thank you for contributing to Repo Updater!
+Thank you for contributing to Repo Ffwd!
 
 Shell scripts are checked by ShellCheck 0.11.0, installed by `just setup`
 (or `just install-shellcheck`, `mise install`, or `flox activate`).

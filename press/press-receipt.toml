@@ -18,13 +18,13 @@ owner = "smorinlabs"
 display_name = "Py Launch Blueprint"
 
 [press.to]
-package_name = "repo_updater"
-repo_name = "repo-updater"
-app_name = "repo_updater"
+package_name = "repo_ffwd"
+repo_name = "repo-ffwd"
+app_name = "repo_ffwd"
 author = "Steve Morin"
 email = "steve.morin@gmail.com"
 owner = "smorinlabs"
-display_name = "Repo Updater"
+display_name = "Repo Ffwd"
 
 [press.counts]
 replaced = 166
@@ -51,7 +51,7 @@ argv = ["/Users/stevemorin/.local/bin/uv", "lock"]
 
 [[press.regenerate]]
 file = "bun.lock"
-argv = ["/Users/stevemorin/c/repo-updater/scripts/regen-bun-lock.sh"]
+argv = ["/Users/stevemorin/c/repo-ffwd/scripts/regen-bun-lock.sh"]
 
 [[press.regenerate]]
 file = "tests/cli/__snapshots__/test_help_snapshots.ambr"
@@ -339,7 +339,7 @@ dir = "assets/images/logos"
 current_dir = "assets/images/logos"
 reason = "the template's logo artwork; a rename would keep the template's images under the new name, and the reset README no longer shows them"
 complete = true
-members = [{ file = "assets/images/logos/py_launch_blueprint_logo_100x100.png", source_dir = "assets/images/logos", current_file = "assets/images/logos/repo_updater_logo_100x100.png" }, { file = "assets/images/logos/py_launch_blueprint_logo_1024x1024.png", source_dir = "assets/images/logos", current_file = "assets/images/logos/repo_updater_logo_1024x1024.png" }, { file = "assets/images/logos/py_launch_blueprint_logo_150x150.png", source_dir = "assets/images/logos", current_file = "assets/images/logos/repo_updater_logo_150x150.png" }]
+members = [{ file = "assets/images/logos/py_launch_blueprint_logo_100x100.png", source_dir = "assets/images/logos", current_file = "assets/images/logos/repo_ffwd_logo_100x100.png" }, { file = "assets/images/logos/py_launch_blueprint_logo_1024x1024.png", source_dir = "assets/images/logos", current_file = "assets/images/logos/repo_ffwd_logo_1024x1024.png" }, { file = "assets/images/logos/py_launch_blueprint_logo_150x150.png", source_dir = "assets/images/logos", current_file = "assets/images/logos/repo_ffwd_logo_150x150.png" }]
 
 [[press.remove_dir]]
 dir = "research"

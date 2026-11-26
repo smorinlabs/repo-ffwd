@@ -9,12 +9,12 @@ specifically about settings.
 import pytest
 from fastapi.testclient import TestClient
 
-from repo_updater import __version__
-from repo_updater.core.errors import APIError, ProjectNotFoundError
-from repo_updater.core.models import Project
-from repo_updater.web.app import create_app
-from repo_updater.web.deps import get_projects_service
-from repo_updater.web.settings import WebSettings
+from repo_ffwd import __version__
+from repo_ffwd.core.errors import APIError, ProjectNotFoundError
+from repo_ffwd.core.models import Project
+from repo_ffwd.web.app import create_app
+from repo_ffwd.web.deps import get_projects_service
+from repo_ffwd.web.settings import WebSettings
 
 PROBLEM_TYPE = "application/problem+json"
 
@@ -42,7 +42,7 @@ def make_client(settings=None, override=True):
 
 @pytest.fixture()
 def client(monkeypatch):
-    monkeypatch.delenv("REPO_UPDATER_TOKEN", raising=False)
+    monkeypatch.delenv("REPO_FFWD_TOKEN", raising=False)
     with make_client() as test_client:
         yield test_client
 
@@ -50,7 +50,7 @@ def client(monkeypatch):
 @pytest.fixture()
 def tokenless_client(monkeypatch):
     """An app with NO service override and no token: exercises real deps."""
-    monkeypatch.delenv("REPO_UPDATER_TOKEN", raising=False)
+    monkeypatch.delenv("REPO_FFWD_TOKEN", raising=False)
     with make_client(override=False) as test_client:
         yield test_client
 
@@ -83,7 +83,7 @@ def test_metrics_exposed_by_default(client):
 
 
 def test_metrics_can_be_disabled(monkeypatch):
-    monkeypatch.delenv("REPO_UPDATER_TOKEN", raising=False)
+    monkeypatch.delenv("REPO_FFWD_TOKEN", raising=False)
     settings = WebSettings.model_construct(metrics_enabled=False)
     with make_client(settings) as test_client:
         assert test_client.get("/metrics").status_code == 404
@@ -115,7 +115,7 @@ def test_cors_off_by_default(client):
 
 
 def test_cors_enabled_via_settings(monkeypatch):
-    monkeypatch.delenv("REPO_UPDATER_TOKEN", raising=False)
+    monkeypatch.delenv("REPO_FFWD_TOKEN", raising=False)
     settings = WebSettings.model_construct(cors_origins=["https://app.example"])
     with make_client(settings) as test_client:
         response = test_client.get(
@@ -211,7 +211,7 @@ def test_rate_limit_disabled_by_default(client):
 
 
 def test_rate_limit_429_problem(monkeypatch):
-    monkeypatch.delenv("REPO_UPDATER_TOKEN", raising=False)
+    monkeypatch.delenv("REPO_FFWD_TOKEN", raising=False)
     settings = WebSettings.model_construct(rate_limit="2/minute")
     with make_client(settings) as test_client:
         assert test_client.get("/healthz").status_code == 200
@@ -230,7 +230,7 @@ def test_rate_limit_429_problem(monkeypatch):
 
 
 def test_cors_preflight_gets_request_id_and_security_headers(monkeypatch):
-    monkeypatch.delenv("REPO_UPDATER_TOKEN", raising=False)
+    monkeypatch.delenv("REPO_FFWD_TOKEN", raising=False)
     settings = WebSettings.model_construct(cors_origins=["https://app.example"])
     with make_client(settings) as test_client:
         response = test_client.options(
@@ -246,8 +246,8 @@ def test_cors_preflight_gets_request_id_and_security_headers(monkeypatch):
 
 
 def test_readyz_failure_is_a_problem_with_diagnostics(client, monkeypatch):
-    from repo_updater.core.models import DoctorCheck, DoctorReport
-    from repo_updater.web import app as app_module
+    from repo_ffwd.core.models import DoctorCheck, DoctorReport
+    from repo_ffwd.web import app as app_module
 
     failing = DoctorReport(
         checks=[DoctorCheck(name="python", status="error", detail="boom")]

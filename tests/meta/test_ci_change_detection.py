@@ -269,7 +269,7 @@ def test_heavy_jobs_follow_the_code_output():
         (
             "typecheck",
             [
-                "uv run --no-sync ty check src/repo_updater/",
+                "uv run --no-sync ty check src/repo_ffwd/",
                 "uv run --no-sync lint-imports",
                 "uv run --no-sync tach check",
             ],

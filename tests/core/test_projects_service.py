@@ -2,10 +2,10 @@
 
 import pytest
 
-from repo_updater.core.adapters.in_memory import InMemoryProjectsRepository
-from repo_updater.core.errors import ProjectNotFoundError, WorkspaceNotFoundError
-from repo_updater.core.models import Project
-from repo_updater.core.services.projects import ProjectsService
+from repo_ffwd.core.adapters.in_memory import InMemoryProjectsRepository
+from repo_ffwd.core.errors import ProjectNotFoundError, WorkspaceNotFoundError
+from repo_ffwd.core.models import Project
+from repo_ffwd.core.services.projects import ProjectsService
 
 
 def _service(projects=None, workspaces=None):
@@ -58,5 +58,5 @@ def test_workspace_resolution_is_case_insensitive():
 
 
 def test_not_found_errors_have_distinct_stable_codes():
-    assert ProjectNotFoundError("x").error_code == "REPO_UPDATER005"
-    assert WorkspaceNotFoundError("x").error_code == "REPO_UPDATER006"
+    assert ProjectNotFoundError("x").error_code == "REPO_FFWD005"
+    assert WorkspaceNotFoundError("x").error_code == "REPO_FFWD006"

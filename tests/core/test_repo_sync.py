@@ -5,10 +5,10 @@ import subprocess
 from pathlib import Path
 from unittest.mock import patch
 
-from repo_updater.core.adapters.git_cli import SubprocessGitAdapter
-from repo_updater.core.models import GitExecResult, SyncOutcome
-from repo_updater.core.services.repos import RepoSyncService
-from repo_updater.core.settings import RootConfig
+from repo_ffwd.core.adapters.git_cli import SubprocessGitAdapter
+from repo_ffwd.core.models import GitExecResult, SyncOutcome
+from repo_ffwd.core.services.repos import RepoSyncService
+from repo_ffwd.core.settings import RootConfig
 
 _GIT = shutil.which("git") or "git"
 
@@ -176,7 +176,7 @@ def test_sync_autostash_conflict_preserves_stash(tmp_path):
     item = report.items[0]
     assert item.outcome is SyncOutcome.STASH_CONFLICT
     assert item.stashed is True
-    assert "repo-updater autostash" in _git(clone, "stash", "list")
+    assert "repo-ffwd autostash" in _git(clone, "stash", "list")
 
 
 def test_sync_ahead_and_diverged_untouched(tmp_path):

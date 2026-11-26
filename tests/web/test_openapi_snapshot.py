@@ -8,9 +8,9 @@ oasdiff against the base branch to call out breaking changes.
 import json
 from pathlib import Path
 
-from repo_updater import __version__
-from repo_updater.web.app import create_app
-from repo_updater.web.settings import WebSettings
+from repo_ffwd import __version__
+from repo_ffwd.web.app import create_app
+from repo_ffwd.web.settings import WebSettings
 from scripts.export_openapi import SNAPSHOT_VERSION
 
 SNAPSHOT = Path(__file__).resolve().parents[2] / "docs" / "api" / "openapi.json"

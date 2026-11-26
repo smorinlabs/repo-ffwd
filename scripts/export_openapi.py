@@ -13,8 +13,8 @@ import json
 import sys
 from pathlib import Path
 
-from repo_updater.web.app import create_app
-from repo_updater.web.settings import WebSettings
+from repo_ffwd.web.app import create_app
+from repo_ffwd.web.settings import WebSettings
 
 DEFAULT_OUT = "docs/api/openapi.json"
 
